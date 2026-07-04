@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+    const validatedMetadata = metadataResult.success ? metadataResult.data : parsed.data.metadata;
 
     // Auto-generate slug from name
     const slug = parsed.data.name
@@ -97,12 +98,12 @@ export async function POST(request: NextRequest) {
           slug,
           description: parsed.data.description ?? null,
           division: assetType.division,
-          metadata: parsed.data.metadata,
+          metadata: validatedMetadata,
         },
       });
 
       // Create denormalized field values for filterable fields
-      const metadata = parsed.data.metadata as Record<string, any>;
+      const metadata = validatedMetadata as Record<string, any>;
       const filterableFields = assetType.fields.filter((f) => f.is_filterable);
 
       if (filterableFields.length > 0) {

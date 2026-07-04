@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { serializeBigInts } from "@/lib/serialize";
 
 // ---------------------------------------------------------------------------
 // GET  /api/assets/[id]/versions  → list versions for an asset
@@ -18,7 +19,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
       where: { asset_id: id },
       orderBy: { created_at: "desc" },
     });
-    return NextResponse.json(versions);
+    return NextResponse.json(serializeBigInts(versions));
   } catch (error) {
     logger.error("Failed to list versions", { error: String(error), assetId: (await params).id });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     });
 
     logger.info("Asset version created", { assetId: id, version });
-    return NextResponse.json(created, { status: 201 });
+    return NextResponse.json(serializeBigInts(created), { status: 201 });
   } catch (error: any) {
     if (error?.code === "P2002") {
       return NextResponse.json(

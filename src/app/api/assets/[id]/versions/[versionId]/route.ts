@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { serializeBigInts } from "@/lib/serialize";
 
 // ---------------------------------------------------------------------------
 // PATCH /api/assets/[id]/versions/[versionId]  → update version properties
@@ -39,7 +40,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     });
 
     logger.info("Asset version updated", { assetId: id, versionId, status: updated.status });
-    return NextResponse.json(updated);
+    return NextResponse.json(serializeBigInts(updated));
   } catch (error) {
     logger.error("Failed to update version", { error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

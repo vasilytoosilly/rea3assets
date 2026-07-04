@@ -5,6 +5,7 @@ import { validateMetadata } from "@/lib/metadata-validator";
 import { mapFieldValue } from "@/lib/field-value-mapper";
 import { logger } from "@/lib/logger";
 import { syncSku } from "@/lib/erp-client";
+import { serializeBigInts } from "@/lib/serialize";
 
 // ---------------------------------------------------------------------------
 // GET   /api/assets/[id]  → get one asset with all relations
@@ -36,7 +37,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
-    return NextResponse.json(asset);
+    return NextResponse.json(serializeBigInts(asset));
   } catch (error) {
     logger.error("Failed to get asset", { error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -62,6 +63,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     // If metadata changed, re-validate against the type's field definitions
+    let validatedMetadata: Record<string, any> | undefined;
     if (parsed.data.metadata !== undefined) {
       const metadataResult = validateMetadata(
         parsed.data.metadata,
@@ -73,6 +75,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
           { status: 400 },
         );
       }
+      validatedMetadata = metadataResult.data;
     }
 
     // Update the asset
@@ -82,7 +85,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         data: {
           ...(parsed.data.name !== undefined && { name: parsed.data.name }),
           ...(parsed.data.description !== undefined && { description: parsed.data.description }),
-          ...(parsed.data.metadata !== undefined && { metadata: parsed.data.metadata }),
+          ...(validatedMetadata !== undefined && { metadata: validatedMetadata }),
           ...(parsed.data.status !== undefined && {
             status: parsed.data.status,
             ...(parsed.data.status === "published" && !existing.published_at
@@ -93,10 +96,10 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       });
 
       // Refresh denormalized field values if metadata changed
-      if (parsed.data.metadata !== undefined) {
+      if (validatedMetadata !== undefined) {
         await tx.assetFieldValue.deleteMany({ where: { asset_id: id } });
 
-        const metadata = parsed.data.metadata as Record<string, any>;
+        const metadata = validatedMetadata as Record<string, any>;
         const filterableFields = existing.asset_type.fields.filter((f) => f.is_filterable);
 
         if (filterableFields.length > 0) {
