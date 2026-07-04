@@ -257,6 +257,12 @@ function DynamicField({
   value: any;
   onChange: (v: any) => void;
 }) {
+  // All hooks at the top level — never conditionally
+  const [tagInput, setTagInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const label = (
     <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
       {field.label}
@@ -414,7 +420,6 @@ function DynamicField({
       );
 
     case "tags": {
-      const [inputVal, setInputVal] = useState("");
       const tags: string[] = Array.isArray(value) ? value : [];
       const maxTags = field.config?.max_tags;
       return (
@@ -440,13 +445,13 @@ function DynamicField({
             <div className="flex gap-2">
               <input
                 type="text"
-                value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && inputVal.trim()) {
+                  if (e.key === "Enter" && tagInput.trim()) {
                     e.preventDefault();
-                    onChange([...tags, inputVal.trim()]);
-                    setInputVal("");
+                    onChange([...tags, tagInput.trim()]);
+                    setTagInput("");
                   }
                 }}
                 placeholder="Type and press Enter"
@@ -455,10 +460,10 @@ function DynamicField({
               <Button
                 size="sm"
                 variant="secondary"
-                disabled={!inputVal.trim()}
+                disabled={!tagInput.trim()}
                 onClick={() => {
-                  onChange([...tags, inputVal.trim()]);
-                  setInputVal("");
+                  onChange([...tags, tagInput.trim()]);
+                  setTagInput("");
                 }}
               >
                 Add
@@ -487,9 +492,6 @@ function DynamicField({
 
     case "image":
     case "file": {
-      const [uploading, setUploading] = useState(false);
-      const [uploadError, setUploadError] = useState<string | null>(null);
-      const inputRef = useRef<HTMLInputElement>(null);
       const fileValue = value as { filename?: string; url?: string; size_bytes?: number } | undefined;
 
       const handleFile = async (file: File) => {
@@ -521,14 +523,13 @@ function DynamicField({
         <div>
           {label}
           <input
-            ref={inputRef}
+            ref={fileInputRef}
             type="file"
             accept={field.field_type === "image" ? "image/*" : undefined}
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFile(file);
-              // Reset so the same file can be re-selected
               e.target.value = "";
             }}
           />
@@ -556,7 +557,7 @@ function DynamicField({
           ) : (
             <button
               type="button"
-              onClick={() => inputRef.current?.click()}
+              onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               className="w-full rounded-md border border-dashed p-4 text-center transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-50"
               style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}

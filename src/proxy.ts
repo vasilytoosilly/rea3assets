@@ -7,6 +7,7 @@
 // - If ADMIN_PASSWORD is not set, auth is disabled (dev mode)
 
 import { NextResponse, NextRequest } from "next/server";
+import { verifyToken } from "@/lib/auth";
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -35,17 +36,18 @@ export async function proxy(request: NextRequest) {
   }
 
   const sessionCookie = request.cookies.get("rea3_session")?.value;
+  const isValid = sessionCookie ? await verifyToken(sessionCookie) : null;
 
-  // API routes: return 401 if no session
+  // API routes: return 401 if no valid session
   if (pathname.startsWith("/api/")) {
-    if (!sessionCookie) {
+    if (!isValid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.next();
   }
 
-  // Admin UI routes: redirect to login if no session
-  if (!sessionCookie) {
+  // Admin UI routes: redirect to login if no valid session
+  if (!isValid) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

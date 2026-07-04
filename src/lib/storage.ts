@@ -6,7 +6,7 @@
 // Swap implementations without changing callers.
 
 import { randomUUID } from "node:crypto";
-import { writeFile, mkdir, access } from "node:fs/promises";
+import { writeFile, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { logger } from "./logger";
 
@@ -58,7 +58,7 @@ export const localStorage: StorageBackend = {
     await mkdir(path.dirname(filePath), { recursive: true });
     await writeFile(filePath, buffer);
 
-    const url = `${uploadDir}/${key}`;
+    const url = `/api/files/${key}`;
     logger.info("File stored", { key, size: buffer.length });
 
     return {
@@ -74,8 +74,7 @@ export const localStorage: StorageBackend = {
     try {
       const uploadDir = getUploadDir();
       const filePath = path.join(uploadDir, key);
-      await access(filePath);
-      await writeFile(filePath, Buffer.alloc(0)); // truncate
+      await unlink(filePath);
       logger.info("File deleted", { key });
     } catch {
       // no-op if doesn't exist
@@ -91,7 +90,7 @@ let _backend: StorageBackend = localStorage;
 
 export function setStorageBackend(backend: StorageBackend): void {
   _backend = backend;
-  logger.info("Storage backend replaced", { backend: backend.constructor.name });
+  logger.info("Storage backend replaced");
 }
 
 export function getStorage(): StorageBackend {

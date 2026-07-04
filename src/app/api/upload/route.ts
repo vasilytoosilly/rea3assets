@@ -7,10 +7,6 @@ import { logger } from "@/lib/logger";
 //
 // Accepts multipart/form-data with a single file field.
 // Returns storage metadata: { url, originalName, mimeType, sizeBytes }.
-//
-// Optional query params:
-//   ?asset_id=...   — link to an asset (for metadata field values)
-//   ?field_slug=... — which AssetTypeField this file belongs to
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
