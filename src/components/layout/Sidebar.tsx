@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 
 // ---------------------------------------------------------------------------
@@ -59,6 +59,8 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   /** Check if a nav item is active based on current pathname */
   const isActive = useCallback(
@@ -127,12 +129,30 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </ul>
         </nav>
 
-        {/* Footer — version indicator */}
+        {/* Footer — version indicator + logout */}
         <div className="border-t px-4 py-3" style={{ borderColor: "var(--border-default)" }}>
-          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            <span className="font-medium" style={{ color: "var(--text-secondary)" }}>v0.1.0</span>
-            {" · "}Schema-driven CMS
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              <span className="font-medium" style={{ color: "var(--text-secondary)" }}>v0.1.0</span>
+              {" · "}Schema-driven CMS
+            </p>
+            <button
+              onClick={async () => {
+                setLoggingOut(true);
+                try {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                  router.push("/login");
+                  router.refresh();
+                } catch {
+                  setLoggingOut(false);
+                }
+              }}
+              disabled={loggingOut}
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors disabled:opacity-50"
+            >
+              {loggingOut ? "..." : "Logout"}
+            </button>
+          </div>
         </div>
       </aside>
     </>

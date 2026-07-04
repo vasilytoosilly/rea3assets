@@ -12,6 +12,7 @@ import { NextResponse, NextRequest } from "next/server";
 const PUBLIC_ROUTES = [
   "/login",
   "/api/auth/login",
+  "/api/auth/logout",
   "/api/internal/sku-sync",
   "/api/settings/erp-test",
 ];
