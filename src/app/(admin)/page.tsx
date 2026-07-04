@@ -1,27 +1,21 @@
+"use client";
+
 import { StatCard, PageHeader } from "@/components/ui";
 
 // ---------------------------------------------------------------------------
 // Dashboard — overview page with live data
 // ---------------------------------------------------------------------------
 
-export default function DashboardPage() {
-  return <DashboardContent />;
-}
-
-// ---------------------------------------------------------------------------
-// Client component to fetch live stats
-// ---------------------------------------------------------------------------
-
 import { useState, useEffect } from "react";
 
-function DashboardContent() {
+export default function DashboardPage() {
   const [stats, setStats] = useState<{
     assetTypes: number;
     totalAssets: number;
     published: number;
     inReview: number;
   } | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -40,7 +34,7 @@ function DashboardContent() {
           inReview: assets.filter((a: any) => a.status === "in_review").length,
         });
       } catch (err) {
-        setError(String(err));
+        setLoadError(String(err));
       }
     }
     load();
@@ -52,6 +46,20 @@ function DashboardContent() {
         title="Dashboard"
         subtitle="Asset management overview for your studio."
       />
+
+      {/* Error banner */}
+      {loadError && (
+        <div
+          className="rounded-md border p-3 text-sm"
+          style={{
+            borderColor: "var(--accent)",
+            backgroundColor: "var(--accent-muted)",
+            color: "var(--accent)",
+          }}
+        >
+          Failed to load live stats: {loadError}
+        </div>
+      )}
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

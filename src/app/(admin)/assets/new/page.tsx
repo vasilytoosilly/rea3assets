@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { PageHeader, Button, Card, CardBody, Badge, Input } from "@/components/ui";
+import { PageHeader, Button, Card, CardBody, Input } from "@/components/ui";
 
 // ---------------------------------------------------------------------------
 // New Asset form — schema-driven: fields are fetched from the selected type

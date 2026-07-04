@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { updateTagGroupSchema, createTagSchema, updateTagSchema } from "@/lib/validations/tags";
+import { updateTagGroupSchema } from "@/lib/validations/tags";
 import { logger } from "@/lib/logger";
 
 // ---------------------------------------------------------------------------

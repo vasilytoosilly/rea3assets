@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PageHeader, Card, CardBody, CardHeader, Input, Button, Badge } from "@/components/ui";
+import { PageHeader, Card, CardBody, CardHeader, Button, Badge } from "@/components/ui";
 
 // ---------------------------------------------------------------------------
 // ERP Integration settings page

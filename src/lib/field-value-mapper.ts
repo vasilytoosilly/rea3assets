@@ -10,7 +10,7 @@ export interface FieldValueColumns {
   value_number?: number;
   value_boolean?: boolean;
   value_date?: Date;
-  value_json?: unknown;
+  value_json?: any;
 }
 
 /**

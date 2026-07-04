@@ -7,7 +7,6 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Badge,
   Input,
   EmptyState,
 } from "@/components/ui";

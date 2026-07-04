@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   createAssetTypeSchema,
-  updateAssetTypeSchema,
   createFieldSchema,
 } from "../src/lib/validations/asset-types";
 
