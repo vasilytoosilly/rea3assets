@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   PageHeader,
   Button,
@@ -43,6 +44,7 @@ interface AssetSummary {
 }
 
 export default function AssetsPage() {
+  const router = useRouter();
   const [assets, setAssets] = useState<AssetSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +80,7 @@ export default function AssetsPage() {
         title="Assets"
         subtitle="Browse and manage all game-development assets across every type."
         action={
-          <Button onClick={() => (window.location.href = "/assets/new")}>
+          <Button onClick={() => router.push("/assets/new")}>
             + New Asset
           </Button>
         }
