@@ -90,7 +90,7 @@ export default function AssetDetailPage() {
   const [asset, setAsset] = useState<AssetDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"metadata" | "versions" | "settings">("metadata");
+  const [activeTab, setActiveTab] = useState<"metadata" | "versions" | "tags" | "settings">("metadata");
   const [statusChanging, setStatusChanging] = useState(false);
 
   const fetchAsset = useCallback(async () => {
@@ -221,12 +221,19 @@ export default function AssetDetailPage() {
           label="Versions"
           count={asset.versions.length}
         />
+        <TabButton
+          active={activeTab === "tags"}
+          onClick={() => setActiveTab("tags")}
+          label="Tags"
+          count={asset.tags.length}
+        />
         <TabButton active={activeTab === "settings"} onClick={() => setActiveTab("settings")} label="Settings" />
       </div>
 
       {/* Tab content */}
       {activeTab === "metadata" && <MetadataTab asset={asset} />}
       {activeTab === "versions" && <VersionsTab versions={asset.versions} />}
+      {activeTab === "tags" && <TagsTab assetId={asset.id} initialTags={asset.tags} />}
       {activeTab === "settings" && <SettingsTab asset={asset} onSaved={fetchAsset} />}
     </div>
   );
@@ -579,6 +586,126 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
           {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tags tab — view and manage tag assignments
+// ---------------------------------------------------------------------------
+
+function TagsTab({
+  assetId,
+  initialTags,
+}: {
+  assetId: string;
+  initialTags: Array<{
+    tag: { id: string; slug: string; name: string; color: string | null; group: { name: string } };
+  }>;
+}) {
+  const [groups, setGroups] = useState<Array<{ id: string; slug: string; name: string; tags: Array<{ id: string; slug: string; name: string; color: string | null }> }>>([]);
+  const [assignedIds, setAssignedIds] = useState<Set<string>>(new Set(initialTags.map((t) => t.tag.id)));
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/tag-groups")
+      .then((r) => r.json())
+      .then((data) => {
+        setGroups(data);
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, []);
+
+  const toggleTag = (tagId: string) => {
+    setAssignedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(tagId)) next.delete(tagId);
+      else next.add(tagId);
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/assets/${assetId}/tags`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tag_ids: Array.from(assignedIds) }),
+      });
+      if (!res.ok) throw new Error("Failed to save tags");
+    } catch (err) {
+      alert(String(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Group tags by their group for display
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center rounded-lg border border-dashed px-8 py-16"
+        style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Loading tags...</p>
+      </div>
+    );
+  }
+
+  if (groups.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed px-8 py-12 text-center"
+        style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+          No tag groups configured.{" "}
+          <a href="/tags" className="underline" style={{ color: "var(--accent)" }}>Create tag groups</a>{" "}
+          to classify this asset.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+          Assign tags from the configured tag groups. Changes are saved immediately.
+        </p>
+        <Button size="sm" onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save Tags"}
+        </Button>
+      </div>
+
+      {groups.map((group) => (
+        <div key={group.id}>
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>
+            {group.name}
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {group.tags.map((tag) => {
+              const active = assignedIds.has(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  onClick={() => toggleTag(tag.id)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    active
+                      ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
+                      : "border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+                  }`}
+                  style={active && tag.color ? { borderColor: tag.color, backgroundColor: `${tag.color}1a`, color: tag.color } : undefined}
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+            {group.tags.length === 0 && (
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>No tags in this group.</p>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
