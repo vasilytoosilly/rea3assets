@@ -50,6 +50,9 @@ export default function AssetsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const fetchAssets = useCallback(async () => {
     try {
@@ -58,17 +61,21 @@ export default function AssetsPage() {
       const params = new URLSearchParams();
       if (statusFilter) params.set("status", statusFilter);
       if (search) params.set("search", search);
+      params.set("page", String(page));
+      params.set("limit", "25");
       const qs = params.toString();
-      const res = await fetch(`/api/assets${qs ? `?${qs}` : ""}`);
+      const res = await fetch(`/api/assets?${qs}`);
       if (!res.ok) throw new Error(`API returned ${res.status}`);
-      const data = await res.json();
-      setAssets(data);
+      const body = await res.json();
+      setAssets(body.data);
+      setTotalPages(body.pagination.pages);
+      setTotal(body.pagination.total);
     } catch (err) {
       setError(String(err));
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, search]);
+  }, [statusFilter, search, page]);
 
   useEffect(() => {
     fetchAssets();
@@ -91,12 +98,12 @@ export default function AssetsPage() {
         <Input
           placeholder="Search assets..."
           value={search}
-          onChange={setSearch}
+          onChange={(e) => { setSearch(e); setPage(1); }}
           className="max-w-sm"
         />
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           className="rounded-md border px-3 py-2 text-sm"
           style={{
             backgroundColor: "var(--bg-elevated)",
@@ -112,7 +119,7 @@ export default function AssetsPage() {
           <option value="deprecated">Deprecated</option>
           <option value="archived">Archived</option>
         </select>
-        <Badge variant="muted">{assets.length} assets</Badge>
+        <Badge variant="muted">{total} assets</Badge>
       </div>
 
       {/* Loading */}
@@ -208,6 +215,30 @@ export default function AssetsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && !error && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4">
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-[var(--text-muted)]">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
         </div>
       )}
     </div>

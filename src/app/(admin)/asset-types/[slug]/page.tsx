@@ -90,6 +90,8 @@ export default function AssetTypeDetailPage() {
   const [activeTab, setActiveTab] = useState<"fields" | "settings">("fields");
   const [showAddField, setShowAddField] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [confirmDeleteType, setConfirmDeleteType] = useState(false);
 
   // Fetch asset type from API
   const fetchType = useCallback(async () => {
@@ -124,7 +126,7 @@ export default function AssetTypeDetailPage() {
       setDeleteConfirm(null);
       fetchType();
     } catch (err) {
-      alert(String(err));
+      setActionError(String(err));
     }
   };
 
@@ -136,7 +138,7 @@ export default function AssetTypeDetailPage() {
       if (!res.ok) throw new Error(`Failed to delete: ${res.status}`);
       router.push("/asset-types");
     } catch (err) {
-      alert(String(err));
+      setActionError(String(err));
     }
   };
 
@@ -165,6 +167,13 @@ export default function AssetTypeDetailPage() {
 
   return (
     <div className="space-y-6">
+      {actionError && (
+        <div className="rounded-md border p-3 text-sm"
+          style={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-muted)", color: "var(--accent)" }}>
+          {actionError}
+          <button onClick={() => setActionError(null)} className="ml-2 text-xs opacity-70 hover:opacity-100">✕</button>
+        </div>
+      )}
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
         <a href="/asset-types" className="hover:text-[var(--text-primary)]">Asset Types</a>
@@ -199,9 +208,17 @@ export default function AssetTypeDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="danger" size="sm" onClick={handleDeleteType}>
-            Delete Type
-          </Button>
+          {confirmDeleteType ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs" style={{ color: "var(--accent)" }}>Delete this type and all its fields?</span>
+              <Button variant="danger" size="sm" onClick={handleDeleteType}>Yes</Button>
+              <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteType(false)}>No</Button>
+            </div>
+          ) : (
+            <Button variant="danger" size="sm" onClick={() => setConfirmDeleteType(true)}>
+              Delete Type
+            </Button>
+          )}
         </div>
       </div>
 
@@ -396,9 +413,11 @@ function SettingsTab({ type }: { type: AssetType }) {
   const [isInternal, setIsInternal] = useState(type.is_internal);
   const [isPublic, setIsPublic] = useState(type.is_public);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch(`/api/asset-types/${type.slug}`, {
         method: "PATCH",
@@ -416,7 +435,7 @@ function SettingsTab({ type }: { type: AssetType }) {
         throw new Error(data.error ?? `HTTP ${res.status}`);
       }
     } catch (err) {
-      alert(String(err));
+      setSaveError(String(err));
     } finally {
       setSaving(false);
     }
@@ -424,6 +443,13 @@ function SettingsTab({ type }: { type: AssetType }) {
 
   return (
     <div className="space-y-6">
+      {saveError && (
+        <div className="rounded-md border p-3 text-sm"
+          style={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-muted)", color: "var(--accent)" }}>
+          {saveError}
+          <button onClick={() => setSaveError(null)} className="ml-2 text-xs opacity-70 hover:opacity-100">✕</button>
+        </div>
+      )}
       <Card className="border-[var(--border-default)]">
         <CardHeader>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">General</h3>

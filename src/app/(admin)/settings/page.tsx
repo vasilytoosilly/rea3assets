@@ -1,17 +1,44 @@
 "use client";
 
-import { PageHeader, Card, CardBody, CardHeader } from "@/components/ui";
+import { useState, useEffect } from "react";
+import { PageHeader, Card, CardBody, CardHeader, Badge } from "@/components/ui";
 
 // ---------------------------------------------------------------------------
-// General Settings page
+// General Settings page — fetches live status from /api/settings/status
 // ---------------------------------------------------------------------------
+
+interface SystemStatus {
+  version: string;
+  environment: string;
+  database: "connected" | "disconnected";
+  db_name: string;
+  asset_types: number;
+  total_assets: number;
+  published_assets: number;
+  tag_groups: number;
+  pipelines: number;
+  has_auth: boolean;
+  has_erp_key: boolean;
+  upload_dir: string;
+}
 
 export default function SettingsPage() {
+  const [status, setStatus] = useState<SystemStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/settings/status")
+      .then((r) => r.json())
+      .then(setStatus)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Settings"
-        subtitle="Manage general application settings."
+        subtitle="Application status and configuration overview."
       />
 
       <Card className="border-[var(--border-default)]">
@@ -21,10 +48,44 @@ export default function SettingsPage() {
           </h3>
         </CardHeader>
         <CardBody className="space-y-4">
-          <InfoRow label="Version" value="0.1.0" />
-          <InfoRow label="Environment" value={process.env.NODE_ENV ?? "development"} />
-          <InfoRow label="Database" value="PostgreSQL (rea3_assets)" />
-          <InfoRow label="DB Status" value="See connection indicator below" />
+          <InfoRow label="Version" value={status?.version ?? "—"} />
+          <InfoRow label="Environment" value={status?.environment ?? "—"} />
+          <InfoRow
+            label="Database"
+            value={
+              status
+                ? `PostgreSQL (${status.db_name}) — ${status.database}`
+                : "Loading..."
+            }
+          />
+          <InfoRow
+            label="DB Status"
+            value={
+              loading ? (
+                "Checking..."
+              ) : (
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-2 w-2 rounded-full"
+                    style={{
+                      backgroundColor:
+                        status?.database === "connected" ? "#22c55e" : "#ef4444",
+                    }}
+                  />
+                  {status?.database === "connected" ? "Connected" : "Disconnected"}
+                </span>
+              )
+            }
+          />
+          <InfoRow
+            label="Auth"
+            value={
+              <Badge variant={status?.has_auth ? "success" : "muted"} size="sm">
+                {status?.has_auth ? "Enabled" : "Disabled (dev mode)"}
+              </Badge>
+            }
+          />
+          <InfoRow label="Upload Dir" value={status?.upload_dir ?? "—"} />
         </CardBody>
       </Card>
 
@@ -35,17 +96,29 @@ export default function SettingsPage() {
           </h3>
         </CardHeader>
         <CardBody className="space-y-4">
-          <InfoRow label="Asset Types" value="Configurable via Asset Types page" />
-          <InfoRow label="Custom Fields" value="14 field types supported" />
-          <InfoRow label="Pipeline" value="Coming in a later release" />
-          <InfoRow label="Marketplace" value="Coming in a later release" />
+          <InfoRow label="Asset Types" value={status?.asset_types ?? "—"} />
+          <InfoRow label="Total Assets" value={status?.total_assets ?? "—"} />
+          <InfoRow
+            label="Published Assets"
+            value={status?.published_assets ?? "—"}
+          />
+          <InfoRow
+            label="Custom Fields"
+            value="14 field types (text, number, select, image, file, rating, etc.)"
+          />
+          <InfoRow
+            label="Pipelines"
+            value={status ? `${status.pipelines} configured` : "—"}
+          />
+          <InfoRow label="Tag Groups" value={status?.tag_groups ?? "—"} />
+          <InfoRow label="ERP Integration" value={status?.has_erp_key ? "Configured" : "Not configured"} />
         </CardBody>
       </Card>
     </div>
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3 last:border-0 last:pb-0">
       <span className="text-sm font-medium text-[var(--text-secondary)]">{label}</span>

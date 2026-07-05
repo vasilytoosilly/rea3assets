@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Button,
@@ -49,6 +49,7 @@ interface AssetVersion {
   file_hash: string | null;
   format: string | null;
   created_at: string;
+  pipeline_runs: Array<{ id: string; status: string; steps: Array<{ id: string; processor: string; status: string }> }>;
 }
 
 interface FieldValue {
@@ -90,8 +91,9 @@ export default function AssetDetailPage() {
   const [asset, setAsset] = useState<AssetDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"metadata" | "versions" | "tags" | "settings">("metadata");
+  const [activeTab, setActiveTab] = useState<"metadata" | "versions" | "tags" | "thumbnails" | "deps" | "settings">("metadata");
   const [statusChanging, setStatusChanging] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const fetchAsset = useCallback(async () => {
     try {
@@ -117,6 +119,7 @@ export default function AssetDetailPage() {
 
   const handleStatusChange = async (newStatus: string) => {
     setStatusChanging(true);
+    setStatusError(null);
     try {
       const res = await fetch(`/api/assets/${id}`, {
         method: "PATCH",
@@ -126,7 +129,7 @@ export default function AssetDetailPage() {
       if (!res.ok) throw new Error(`Failed: ${res.status}`);
       fetchAsset();
     } catch (err) {
-      alert(String(err));
+      setStatusError(String(err));
     } finally {
       setStatusChanging(false);
     }
@@ -159,6 +162,13 @@ export default function AssetDetailPage() {
 
   return (
     <div className="space-y-6">
+      {statusError && (
+        <div className="rounded-md border p-3 text-sm"
+          style={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-muted)", color: "var(--accent)" }}>
+          {statusError}
+          <button onClick={() => setStatusError(null)} className="ml-2 text-xs opacity-70 hover:opacity-100">✕</button>
+        </div>
+      )}
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
         <a href="/assets" className="hover:text-[var(--text-primary)]">Assets</a>
@@ -228,12 +238,21 @@ export default function AssetDetailPage() {
           count={asset.tags.length}
         />
         <TabButton active={activeTab === "settings"} onClick={() => setActiveTab("settings")} label="Settings" />
+        <TabButton
+          active={activeTab === "thumbnails"}
+          onClick={() => setActiveTab("thumbnails")}
+          label="Thumbnails"
+          count={asset.thumbnails.length}
+        />
+        <TabButton active={activeTab === "deps"} onClick={() => setActiveTab("deps")} label="Dependencies" />
       </div>
 
       {/* Tab content */}
       {activeTab === "metadata" && <MetadataTab asset={asset} />}
-      {activeTab === "versions" && <VersionsTab versions={asset.versions} />}
+      {activeTab === "versions" && <VersionsTab assetId={asset.id} versions={asset.versions} onRefresh={fetchAsset} />}
       {activeTab === "tags" && <TagsTab assetId={asset.id} initialTags={asset.tags} />}
+      {activeTab === "thumbnails" && <ThumbnailsTab assetId={asset.id} thumbnails={asset.thumbnails} onRefresh={fetchAsset} />}
+      {activeTab === "deps" && <DependenciesTab assetId={asset.id} onRefresh={fetchAsset} />}
       {activeTab === "settings" && <SettingsTab asset={asset} onSaved={fetchAsset} />}
     </div>
   );
@@ -466,58 +485,175 @@ function formatBytes(bytes: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Versions tab
+// Versions tab — list + upload form
 // ---------------------------------------------------------------------------
 
-function VersionsTab({ versions }: { versions: AssetVersion[] }) {
-  if (versions.length === 0) {
-    return (
-      <div className="rounded-lg border border-dashed px-8 py-12 text-center"
-        style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-          No versions uploaded yet. Upload a file to create the first version.
-        </p>
-      </div>
-    );
-  }
+function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versions: AssetVersion[]; onRefresh: () => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const suggestNextVersion = (): string => {
+    const latest = versions[0]?.version;
+    if (!latest) return "1.0.0";
+    const parts = latest.split(".");
+    const patch = parseInt(parts[2] ?? "0", 10);
+    return `${parts[0]}.${parts[1]}.${patch + 1}`;
+  };
+
+  const [version, setVersion] = useState(suggestNextVersion());
+  const [changelog, setChangelog] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+
+  const handleUpload = async (file: File) => {
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.error ?? `Upload failed (${res.status})`);
+      }
+      const stored = await res.json();
+      const ext = file.name.split(".").pop() || "";
+
+      const vRes = await fetch(`/api/assets/${assetId}/versions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          version,
+          changelog: changelog.trim() || null,
+          file_path: stored.url,
+          file_size: stored.sizeBytes,
+          format: ext,
+        }),
+      });
+
+      if (!vRes.ok) {
+        const err = await vRes.json().catch(() => null);
+        throw new Error(err?.error ?? `Version create failed (${vRes.status})`);
+      }
+
+      setShowUploadForm(false);
+      setVersion("1.0.0");
+      setChangelog("");
+      onRefresh();
+    } catch (err) {
+      setUploadError(String(err));
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
-    <div className="space-y-2">
-      {versions.map((v) => {
-        const statusVariant =
-          v.status === "published" ? "success" :
-          v.status === "deprecated" ? "error" :
-          v.status === "processing" ? "warning" :
-          "muted";
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-[var(--text-muted)]">
+          {versions.length === 0
+            ? "No versions yet. Upload a file to create the first version."
+            : `${versions.length} version${versions.length !== 1 ? "s" : ""}`}
+        </p>
+        <Button size="sm" onClick={() => setShowUploadForm(!showUploadForm)}>
+          {showUploadForm ? "Cancel" : "+ New Version"}
+        </Button>
+      </div>
 
-        return (
-          <Card key={v.id} className="border-[var(--border-default)]">
-            <CardBody className="py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-mono font-semibold text-[var(--text-primary)]">
-                    v{v.version}
-                  </span>
-                  <Badge variant={statusVariant as any} size="sm">{v.status}</Badge>
-                  {v.format && (
-                    <Badge variant="muted" size="sm">{v.format}</Badge>
+      {showUploadForm && (
+        <Card className="border-[var(--border-default)]">
+          <CardBody className="space-y-4 py-4">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">Upload New Version</h4>
+
+            {uploadError && (
+              <div className="rounded-md border p-3 text-sm"
+                style={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-muted)", color: "var(--accent)" }}>
+                {uploadError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input label="Version (semver)" placeholder="1.0.0" value={version} onChange={setVersion} />
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">File</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUpload(file);
+                    e.target.value = "";
+                  }}
+                />
+                <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                  {uploading ? "Uploading..." : "Choose File"}
+                </Button>
+                <p className="mt-1 text-[10px] text-[var(--text-muted)]">Max 50MB. Supported: .rbxm, .rbxmx, .fbx, .blend, .glb, .zip</p>
+              </div>
+            </div>
+
+            <Input label="Changelog" placeholder="What changed in this version?" value={changelog} onChange={setChangelog} />
+          </CardBody>
+        </Card>
+      )}
+
+      {versions.length === 0 && !showUploadForm ? (
+        <div className="rounded-lg border border-dashed px-8 py-12 text-center"
+          style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            No versions uploaded yet. Upload a file to create the first version.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {versions.map((v) => {
+            const statusVariant =
+              v.status === "published" ? "success" :
+              v.status === "deprecated" ? "error" :
+              v.status === "processing" ? "warning" :
+              "muted";
+
+            return (
+              <Card key={v.id} className="border-[var(--border-default)]">
+                <CardBody className="py-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-mono font-semibold text-[var(--text-primary)]">
+                        v{v.version}
+                      </span>
+                      <Badge variant={statusVariant as any} size="sm">{v.status}</Badge>
+                      {v.format && (
+                        <Badge variant="muted" size="sm">{v.format}</Badge>
+                      )}
+                      {v.pipeline_runs?.map((run) => (
+                        <Badge key={run.id} size="sm" variant={
+                          run.status === "completed" ? "success" :
+                          run.status === "failed" ? "error" :
+                          run.status === "running" ? "warning" : "muted"
+                        }>⚙ {run.status}</Badge>
+                      ))}
+                    </div>
+                    <span className="text-xs text-[var(--text-muted)]">
+                      {new Date(v.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {v.changelog && (
+                    <p className="mt-2 text-sm text-[var(--text-secondary)]">{v.changelog}</p>
                   )}
-                </div>
-                <span className="text-xs text-[var(--text-muted)]">
-                  {new Date(v.created_at).toLocaleDateString()}
-                </span>
-              </div>
-              {v.changelog && (
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">{v.changelog}</p>
-              )}
-              <div className="mt-2 flex items-center gap-4 text-xs text-[var(--text-muted)]">
-                {v.file_size && <span>Size: {formatBytes(Number(v.file_size))}</span>}
-                {v.file_hash && <span className="font-mono">SHA: {v.file_hash.slice(0, 12)}...</span>}
-              </div>
-            </CardBody>
-          </Card>
-        );
-      })}
+                  <div className="mt-2 flex items-center gap-4 text-xs text-[var(--text-muted)]">
+                    {v.file_size && <span>Size: {formatBytes(Number(v.file_size))}</span>}
+                    {v.file_hash && <span className="font-mono">SHA: {v.file_hash.slice(0, 12)}...</span>}
+                    {v.file_path && (
+                      <a href={v.file_path} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--accent)" }}>Download</a>
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -530,9 +666,11 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
   const [name, setName] = useState(asset.name);
   const [description, setDescription] = useState(asset.description ?? "");
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       const res = await fetch(`/api/assets/${asset.id}`, {
         method: "PATCH",
@@ -545,7 +683,7 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       onSaved();
     } catch (err) {
-      alert(String(err));
+      setSaveError(String(err));
     } finally {
       setSaving(false);
     }
@@ -553,6 +691,13 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
 
   return (
     <div className="space-y-6">
+      {saveError && (
+        <div className="rounded-md border p-3 text-sm"
+          style={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-muted)", color: "var(--accent)" }}>
+          {saveError}
+          <button onClick={() => setSaveError(null)} className="ml-2 text-xs opacity-70 hover:opacity-100">✕</button>
+        </div>
+      )}
       <Card className="border-[var(--border-default)]">
         <CardHeader>
           <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">General</h3>
@@ -706,6 +851,196 @@ function TagsTab({
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function ThumbnailsTab({ assetId, thumbnails, onRefresh }: { assetId: string; thumbnails: Array<{ id: string; url: string; purpose: string; width: number | null; height: number | null; format: string }>; onRefresh: () => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`/api/assets/${assetId}/thumbnails`, { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      onRefresh();
+    } catch (err) {
+      alert(String(err));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (thumbId: string) => {
+    setDeleting(thumbId);
+    try {
+      await fetch(`/api/assets/${assetId}/thumbnails/${thumbId}`, { method: "DELETE" });
+      onRefresh();
+    } catch (err) {
+      alert(String(err));
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-[var(--text-muted)]">
+          {thumbnails.length === 0 ? "No thumbnails yet." : `${thumbnails.length} thumbnail${thumbnails.length !== 1 ? "s" : ""}`}
+        </p>
+        <div>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ""; }} />
+          <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+            {uploading ? "Uploading..." : "+ Add Thumbnail"}
+          </Button>
+        </div>
+      </div>
+      {thumbnails.length === 0 ? (
+        <div className="rounded-lg border border-dashed px-8 py-12 text-center"
+          style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+          <p className="text-sm text-[var(--text-muted)]">Upload images to showcase this asset in the library.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {thumbnails.map((t) => (
+            <div key={t.id} className="group relative rounded-lg border overflow-hidden"
+              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
+              <img src={t.url} alt={t.purpose} className="w-full aspect-square object-cover" />
+              <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Badge size="sm">{t.purpose}</Badge>
+                <Button size="sm" variant="danger" onClick={() => handleDelete(t.id)} disabled={deleting === t.id}>
+                  {deleting === t.id ? "..." : "✕"}
+                </Button>
+              </div>
+              <div className="px-2 py-1.5">
+                <p className="text-[10px] text-[var(--text-muted)] uppercase">{t.format}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DependenciesTab({ assetId, onRefresh }: { assetId: string; onRefresh: () => void }) {
+  const [deps, setDeps] = useState<Array<{ id: string; dependency_id: string; dependency_type: string; notes: string | null; dependency: { id: string; name: string; slug: string } }>>([]);
+  const [assets, setAssets] = useState<Array<{ id: string; name: string; slug: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDep, setSelectedDep] = useState("");
+  const [depType, setDepType] = useState("requires");
+  const [adding, setAdding] = useState(false);
+
+  const fetchDeps = async () => {
+    try {
+      const [dRes, aRes] = await Promise.all([
+        fetch(`/api/assets/${assetId}/dependencies`),
+        fetch("/api/assets?limit=100"),
+      ]);
+      if (dRes.ok) setDeps(await dRes.json());
+      if (aRes.ok) {
+        const body = await aRes.json();
+        setAssets(body.data.filter((a: any) => a.id !== assetId));
+      }
+    } catch { /* ignore */ }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchDeps(); }, [assetId]);
+
+  const handleAdd = async () => {
+    if (!selectedDep) return;
+    setAdding(true);
+    try {
+      const res = await fetch(`/api/assets/${assetId}/dependencies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dependency_id: selectedDep, dependency_type: depType }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Failed");
+      }
+      setSelectedDep("");
+      fetchDeps();
+      onRefresh();
+    } catch (err) {
+      alert(String(err));
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleRemove = async (depId: string) => {
+    try {
+      await fetch(`/api/assets/${assetId}/dependencies/${depId}`, { method: "DELETE" });
+      fetchDeps();
+      onRefresh();
+    } catch (err) {
+      alert(String(err));
+    }
+  };
+
+  if (loading) {
+    return <div className="rounded-lg border border-dashed px-8 py-16 text-center" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+      <p className="text-sm text-[var(--text-muted)]">Loading...</p>
+    </div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-end gap-3">
+        <div className="flex-1">
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Add Dependency</label>
+          <select value={selectedDep} onChange={(e) => setSelectedDep(e.target.value)}
+            className="block w-full rounded-md border px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border-default)", color: "var(--text-primary)" }}>
+            <option value="">Select asset...</option>
+            {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Type</label>
+          <select value={depType} onChange={(e) => setDepType(e.target.value)}
+            className="block w-full rounded-md border px-3 py-2 text-sm"
+            style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border-default)", color: "var(--text-primary)" }}>
+            <option value="requires">Requires</option>
+            <option value="recommends">Recommends</option>
+            <option value="bundles_with">Bundles with</option>
+          </select>
+        </div>
+        <Button size="sm" disabled={!selectedDep || adding} onClick={handleAdd}>
+          {adding ? "..." : "Add"}
+        </Button>
+      </div>
+
+      {deps.length === 0 ? (
+        <div className="rounded-lg border border-dashed px-8 py-12 text-center"
+          style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+          <p className="text-sm text-[var(--text-muted)]">No dependencies. Link assets that this asset requires or recommends.</p>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {deps.map((d) => (
+            <div key={d.id} className="flex items-center justify-between rounded-md px-3 py-2"
+              style={{ backgroundColor: "var(--bg-elevated)" }}>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[var(--text-primary)]">{d.dependency.name}</span>
+                <Badge size="sm" variant={d.dependency_type === "requires" ? "error" : d.dependency_type === "recommends" ? "warning" : "accent"}>
+                  {d.dependency_type.replace(/_/g, " ")}
+                </Badge>
+              </div>
+              <button onClick={() => handleRemove(d.id)} className="text-[var(--text-muted)] hover:text-[var(--accent)] text-sm">✕</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

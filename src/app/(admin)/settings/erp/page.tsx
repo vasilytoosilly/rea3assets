@@ -10,13 +10,19 @@ import { PageHeader, Card, CardBody, CardHeader, Button, Badge } from "@/compone
 export default function ErpSettingsPage() {
   const [erpUrl, setErpUrl] = useState("");
   const [hasApiKey, setHasApiKey] = useState(false);
+  const [loadingConfig, setLoadingConfig] = useState(true);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [testMessage, setTestMessage] = useState("");
 
   useEffect(() => {
-    // Load from env — these are server-provided, but we expose them via a client hint
-    setErpUrl(process.env.NEXT_PUBLIC_ERP_URL ?? "http://localhost:3000");
-    setHasApiKey(!!process.env.NEXT_PUBLIC_HAS_ERP_KEY);
+    fetch("/api/settings/erp-config")
+      .then((r) => r.json())
+      .then((data) => {
+        setErpUrl(data.erp_url ?? "http://localhost:3000");
+        setHasApiKey(data.has_api_key ?? false);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingConfig(false));
   }, []);
 
   const handleTestConnection = async () => {
@@ -52,8 +58,8 @@ export default function ErpSettingsPage() {
           </h3>
         </CardHeader>
         <CardBody className="space-y-4">
-          <InfoRow label="ERP URL" value={erpUrl || "Not configured"} />
-          <InfoRow label="API Key" value={hasApiKey ? "••••••••" : "Not configured"} />
+          <InfoRow label="ERP URL" value={loadingConfig ? "Loading..." : (erpUrl || "Not configured")} />
+          <InfoRow label="API Key" value={loadingConfig ? "Loading..." : (hasApiKey ? "••••••••" : "Not configured")} />
           <div className="flex items-center gap-3 pt-2">
             <Button size="sm" onClick={handleTestConnection} disabled={testStatus === "testing"}>
               {testStatus === "testing" ? "Testing..." : "Test Connection"}

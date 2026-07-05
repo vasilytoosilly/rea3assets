@@ -1,6 +1,7 @@
 "use client";
 
 import { StatCard, PageHeader } from "@/components/ui";
+import { Puzzle, Package, Rocket, Clock } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Dashboard — overview page with live data
@@ -20,18 +21,22 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [typesRes, assetsRes] = await Promise.all([
+        const [typesRes, assetsRes, publishedRes, reviewRes] = await Promise.all([
           fetch("/api/asset-types"),
-          fetch("/api/assets"),
+          fetch("/api/assets?limit=1"),
+          fetch("/api/assets?status=published&limit=1"),
+          fetch("/api/assets?status=in_review&limit=1"),
         ]);
         if (!typesRes.ok || !assetsRes.ok) throw new Error("Failed to load stats");
         const types = await typesRes.json();
-        const assets = await assetsRes.json();
+        const assetsData = await assetsRes.json();
+        const publishedData = await publishedRes.json();
+        const reviewData = await reviewRes.json();
         setStats({
           assetTypes: types.length,
-          totalAssets: assets.length,
-          published: assets.filter((a: any) => a.status === "published").length,
-          inReview: assets.filter((a: any) => a.status === "in_review").length,
+          totalAssets: assetsData.pagination.total,
+          published: publishedData.pagination.total,
+          inReview: reviewData.pagination.total,
         });
       } catch (err) {
         setLoadError(String(err));
@@ -66,25 +71,25 @@ export default function DashboardPage() {
         <StatCard
           label="Asset Types"
           value={stats?.assetTypes ?? "—"}
-          icon="🧩"
+          icon={<Puzzle size={20} />}
           description="Configured categories"
         />
         <StatCard
           label="Total Assets"
           value={stats?.totalAssets ?? "—"}
-          icon="📦"
+          icon={<Package size={20} />}
           description="Across all types"
         />
         <StatCard
           label="Published"
           value={stats?.published ?? "—"}
-          icon="🚀"
+          icon={<Rocket size={20} />}
           description="Live on marketplace"
         />
         <StatCard
           label="In Review"
           value={stats?.inReview ?? "—"}
-          icon="⏳"
+          icon={<Clock size={20} />}
           description="Awaiting approval"
         />
       </div>

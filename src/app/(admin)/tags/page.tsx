@@ -123,9 +123,12 @@ export default function TagsPage() {
 function TagGroupCard({ group, onRefresh }: { group: TagGroup; onRefresh: () => void }) {
   const [showAddTag, setShowAddTag] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [groupError, setGroupError] = useState<string | null>(null);
+  const [groupDeleteConfirm, setGroupDeleteConfirm] = useState(false);
 
   const handleDeleteTag = async (tagSlug: string) => {
     try {
+      setGroupError(null);
       const res = await fetch(`/api/tag-groups/${group.slug}/tags/${tagSlug}`, {
         method: "DELETE",
       });
@@ -133,18 +136,18 @@ function TagGroupCard({ group, onRefresh }: { group: TagGroup; onRefresh: () => 
       setDeleteConfirm(null);
       onRefresh();
     } catch (err) {
-      alert(String(err));
+      setGroupError(String(err));
     }
   };
 
   const handleDeleteGroup = async () => {
-    if (!confirm(`Delete "${group.name}" and all its tags?`)) return;
     try {
+      setGroupError(null);
       const res = await fetch(`/api/tag-groups/${group.slug}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
       onRefresh();
     } catch (err) {
-      alert(String(err));
+      setGroupError(String(err));
     }
   };
 
@@ -160,11 +163,26 @@ function TagGroupCard({ group, onRefresh }: { group: TagGroup; onRefresh: () => 
           </div>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="ghost" onClick={() => setShowAddTag(true)}>+ Tag</Button>
-            <Button size="sm" variant="danger" onClick={handleDeleteGroup}>Delete</Button>
+            {groupDeleteConfirm ? (
+              <div className="flex items-center gap-1">
+                <span className="text-xs" style={{ color: "var(--accent)" }}>Delete?</span>
+                <Button size="sm" variant="danger" onClick={handleDeleteGroup}>Yes</Button>
+                <Button size="sm" variant="ghost" onClick={() => setGroupDeleteConfirm(false)}>No</Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="danger" onClick={() => setGroupDeleteConfirm(true)}>Delete</Button>
+            )}
           </div>
         </div>
       </CardHeader>
       <CardBody>
+        {groupError && (
+          <div className="mb-3 rounded-md border p-2 text-sm"
+            style={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-muted)", color: "var(--accent)" }}>
+            {groupError}
+            <button onClick={() => setGroupError(null)} className="ml-2 text-xs opacity-70 hover:opacity-100">✕</button>
+          </div>
+        )}
         {group.tags.length === 0 ? (
           <p className="text-sm text-[var(--text-muted)]">No tags in this group yet.</p>
         ) : (

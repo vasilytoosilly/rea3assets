@@ -1,9 +1,6 @@
 // ---------------------------------------------------------------------------
 // ERP Integration Client
 // ---------------------------------------------------------------------------
-// Communicates with the core ReA3 ERP to sync SKU, asset records, etc.
-// Uses ERP_INTERNAL_URL and ERP_INTERNAL_API_KEY from environment.
-// Called during asset publish lifecycle.
 
 import { logger } from "./logger";
 
@@ -54,7 +51,7 @@ async function erpFetch<T>(
     if (!res.ok) {
       return {
         success: false,
-        error: body?.error ?? `ERP returned ${res.status}`,
+        error: body?.error ?? body?.message ?? `ERP returned ${res.status}`,
       };
     }
 
@@ -68,27 +65,122 @@ async function erpFetch<T>(
 }
 
 // ---------------------------------------------------------------------------
-// Public API
+// Asset sync — the primary integration point
 // ---------------------------------------------------------------------------
+
+export interface SyncAssetPayload {
+  sku: string;
+  file_path: string;
+  version: string;
+  format: string;
+  checksum?: string | null;
+}
+
+export interface AssetSyncResult {
+  created: Array<{ file_path: string; version: string }>;
+  updated: Array<{ file_path: string; version: string }>;
+  unchanged: Array<{ file_path: string; version: string }>;
+  failed: Array<{ file_path: string; error: string }>;
+}
+
+/**
+ * Sync an asset file/version to the ERP's Asset table.
+ * POST /api/internal/assets/sync on the ERP side.
+ *
+ * The ERP expects: { sku, assets: [{ file_path, version, format, checksum }] }
+ * The SKU must already exist in the ERP (created via admin UI or ingest script).
+ */
+export async function syncAsset(
+  payload: SyncAssetPayload,
+): Promise<ErpResponse<AssetSyncResult>> {
+  const requestBody = {
+    sku: payload.sku,
+    assets: [{
+      file_path: payload.file_path,
+      version: payload.version,
+      format: payload.format,
+      checksum: payload.checksum ?? null,
+    }],
+  };
+
+  const result = await erpFetch<AssetSyncResult>("/api/internal/assets/sync", {
+    method: "POST",
+    body: JSON.stringify(requestBody),
+  });
+
+  if (result.success) {
+    logger.info("Asset synced to ERP", {
+      sku: payload.sku,
+      version: payload.version,
+    });
+  } else {
+    logger.warn("Asset sync to ERP failed", {
+      sku: payload.sku,
+      error: result.error,
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Query ERP for existing assets by SKU.
+ * GET /api/internal/assets?sku=X on the ERP side.
+ */
+export async function getErpAssets(sku: string): Promise<ErpResponse<{
+  data: Array<{ id: string; sku: string; file_path: string; version: string; format: string; checksum?: string | null }>;
+  pagination: { page: number; limit: number; total: number; pages: number };
+}>> {
+  return erpFetch(`/api/internal/assets?sku=${encodeURIComponent(sku)}`);
+}
+
+// ---------------------------------------------------------------------------
+// Legacy SKU sync — use with caution
+// ---------------------------------------------------------------------------
+// SKU management (pricing, licensing, gateway config) is handled directly in
+// the ERP admin UI. This function exists for automated workflows but requires
+// full commercial data the asset manager may not have.
 
 export interface SyncSkuPayload {
   sku: string;
   name: string;
-  slug: string;
   division: string;
+  family: string;
+  pillar: string;
+  license_model: string;
+  gateway: string;
+  currency: string;
   description?: string | null;
-  asset_type_name: string;
+  asset_type_name?: string;
   metadata?: Record<string, unknown>;
 }
 
 /**
- * Sync an asset's SKU to the ERP when it is published.
+ * Bulk-upsert SKU metadata into the ERP's ProductSKU table.
  * POST /api/internal/sku-sync on the ERP side.
+ *
+ * The ERP expects: { skus: [{ sku, name, division, family, pillar,
+ *   license_model, gateway, currency, ... }] }
+ *
+ * Prefer managing SKUs via the ERP product-master admin UI.
  */
 export async function syncSku(payload: SyncSkuPayload): Promise<ErpResponse> {
+  const requestBody = {
+    skus: [{
+      sku: payload.sku,
+      name: payload.name,
+      division: payload.division,
+      family: payload.family,
+      pillar: payload.pillar,
+      license_model: payload.license_model,
+      gateway: payload.gateway,
+      currency: payload.currency,
+    }],
+  };
+
   const result = await erpFetch("/api/internal/sku-sync", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(requestBody),
   });
 
   if (result.success) {
@@ -100,33 +192,3 @@ export async function syncSku(payload: SyncSkuPayload): Promise<ErpResponse> {
   return result;
 }
 
-export interface UpdateAssetRecordPayload {
-  erp_sku: string;
-  file_path: string;
-  version: string;
-  checksum?: string | null;
-}
-
-/**
- * Update the ERP's Asset record with storage metadata after a version upload.
- * PATCH /api/internal/assets/sync on the ERP side.
- */
-export async function updateAssetRecord(
-  payload: UpdateAssetRecordPayload,
-): Promise<ErpResponse> {
-  const result = await erpFetch("/api/internal/assets/sync", {
-    method: "PATCH",
-    body: JSON.stringify(payload),
-  });
-
-  if (result.success) {
-    logger.info("Asset record updated in ERP", { sku: payload.erp_sku, version: payload.version });
-  } else {
-    logger.warn("Asset record update in ERP failed", {
-      sku: payload.erp_sku,
-      error: result.error,
-    });
-  }
-
-  return result;
-}

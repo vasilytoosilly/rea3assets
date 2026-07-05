@@ -55,6 +55,35 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       },
     });
 
+    // Auto-trigger default pipeline if a file was uploaded
+    if (file_path) {
+      try {
+        const pipeline = await prisma.pipelineConfig.findFirst({
+          where: { asset_type_id: asset.asset_type_id, is_default: true },
+          include: { steps: { orderBy: { sort_order: "asc" } } },
+        });
+
+        if (pipeline && pipeline.steps.length > 0) {
+          const run = await prisma.pipelineRun.create({
+            data: {
+              asset_version_id: created.id,
+              pipeline_id: pipeline.id,
+              status: "pending",
+              steps: {
+                create: pipeline.steps.map((step) => ({
+                  processor: step.processor,
+                  status: "pending",
+                })),
+              },
+            },
+          });
+          logger.info("Pipeline run created for version", { versionId: created.id, runId: run.id, pipeline: pipeline.name });
+        }
+      } catch (pipelineErr) {
+        logger.warn("Failed to trigger pipeline", { error: String(pipelineErr), versionId: created.id });
+      }
+    }
+
     logger.info("Asset version created", { assetId: id, version });
     return NextResponse.json(serializeBigInts(created), { status: 201 });
   } catch (error: any) {

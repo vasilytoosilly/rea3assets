@@ -241,7 +241,7 @@ export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
 interface StatCardProps {
   label: string;
   value: string | number;
-  icon: string;
+  icon: React.ReactNode;
   description?: string;
 }
 
@@ -253,7 +253,7 @@ export function StatCard({ label, value, icon, description }: StatCardProps) {
           <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
             {label}
           </h3>
-          <span className="text-lg" aria-hidden="true">
+          <span className="text-[var(--text-muted)]" aria-hidden="true">
             {icon}
           </span>
         </div>

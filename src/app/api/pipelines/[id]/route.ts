@@ -21,6 +21,14 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
       include: {
         steps: { orderBy: { sort_order: "asc" } },
         asset_type: { select: { slug: true, name: true, icon: true } },
+        runs: {
+          orderBy: { created_at: "desc" },
+          take: 20,
+          include: {
+            asset_version: { select: { id: true, version: true, asset: { select: { id: true, name: true, slug: true } } } },
+            steps: { orderBy: { processor: "asc" }, select: { id: true, processor: true, status: true, error_message: true, started_at: true, completed_at: true } },
+          },
+        },
         _count: { select: { runs: true } },
       },
     });

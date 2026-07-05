@@ -4,7 +4,7 @@ import { updateAssetSchema } from "@/lib/validations/assets";
 import { validateMetadata } from "@/lib/metadata-validator";
 import { mapFieldValue } from "@/lib/field-value-mapper";
 import { logger } from "@/lib/logger";
-import { syncSku } from "@/lib/erp-client";
+import { syncAsset } from "@/lib/erp-client";
 import { serializeBigInts } from "@/lib/serialize";
 
 // ---------------------------------------------------------------------------
@@ -27,7 +27,10 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
           include: { fields: { orderBy: { sort_order: "asc" } } },
         },
         field_values: { include: { field: true } },
-        versions: { orderBy: { created_at: "desc" } },
+        versions: {
+          orderBy: { created_at: "desc" },
+          include: { pipeline_runs: { include: { steps: true } } },
+        },
         thumbnails: { orderBy: { sort_order: "asc" } },
         tags: { include: { tag: { include: { group: true } } } },
       },
@@ -125,18 +128,23 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
     logger.info("Asset updated", { id, status: updated.status });
 
-    // Fire-and-forget ERP sync on publish
+    // Fire-and-forget ERP asset sync on publish
     if (parsed.data.status === "published" && existing.status !== "published") {
-      const assetType = existing.asset_type;
-      syncSku({
-        sku: updated.sku ?? updated.slug,
-        name: updated.name,
-        slug: updated.slug,
-        division: updated.division,
-        description: updated.description,
-        asset_type_name: assetType.name,
-        metadata: updated.metadata as Record<string, unknown> | undefined,
+      const latestVersion = await prisma.assetVersion.findFirst({
+        where: { asset_id: id },
+        orderBy: { created_at: "desc" },
+        select: { file_path: true, version: true, format: true, file_hash: true },
       });
+
+      if (latestVersion?.file_path) {
+        syncAsset({
+          sku: updated.sku ?? updated.slug,
+          file_path: latestVersion.file_path,
+          version: latestVersion.version,
+          format: latestVersion.format ?? "",
+          checksum: latestVersion.file_hash,
+        });
+      }
     }
 
     return NextResponse.json(updated);
@@ -148,6 +156,33 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       );
     }
     logger.error("Failed to update asset", { error: String(error) });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+  try {
+    const { id } = await params;
+
+    const existing = await prisma.asset.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+    }
+
+    await prisma.$transaction([
+      prisma.assetTagAssignment.deleteMany({ where: { asset_id: id } }),
+      prisma.assetFieldValue.deleteMany({ where: { asset_id: id } }),
+      prisma.assetDependency.deleteMany({ where: { asset_id: id } }),
+      prisma.assetDependency.deleteMany({ where: { dependency_id: id } }),
+      prisma.assetThumbnail.deleteMany({ where: { asset_id: id } }),
+      prisma.assetVersion.deleteMany({ where: { asset_id: id } }),
+      prisma.asset.delete({ where: { id } }),
+    ]);
+
+    logger.info("Asset deleted", { id, name: existing.name });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    logger.error("Failed to delete asset", { error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

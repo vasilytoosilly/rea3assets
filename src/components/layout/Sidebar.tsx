@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
+import {
+  LayoutDashboard,
+  Puzzle,
+  Package,
+  Tag,
+  Settings2,
+  Settings,
+  LogOut,
+} from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Sidebar navigation — dark theme, matches rea3.studio aesthetic
@@ -11,43 +20,23 @@ import { useState, useCallback, useEffect } from "react";
 interface NavItem {
   label: string;
   href: string;
-  icon: string;
+  icon: React.ReactNode;
   children?: NavItem[];
 }
 
 const NAV_ITEMS: NavItem[] = [
-  {
-    label: "Dashboard",
-    href: "/",
-    icon: "📊",
-  },
-  {
-    label: "Asset Types",
-    href: "/asset-types",
-    icon: "🧩",
-  },
-  {
-    label: "Assets",
-    href: "/assets",
-    icon: "📦",
-  },
-  {
-    label: "Tags",
-    href: "/tags",
-    icon: "🏷️",
-  },
-  {
-    label: "Pipelines",
-    href: "/pipelines",
-    icon: "⚙️",
-  },
+  { label: "Dashboard", href: "/", icon: <LayoutDashboard size={18} /> },
+  { label: "Asset Types", href: "/asset-types", icon: <Puzzle size={18} /> },
+  { label: "Assets", href: "/assets", icon: <Package size={18} /> },
+  { label: "Tags", href: "/tags", icon: <Tag size={18} /> },
+  { label: "Pipelines", href: "/pipelines", icon: <Settings2 size={18} /> },
   {
     label: "Settings",
     href: "/settings",
-    icon: "⚙️",
+    icon: <Settings size={18} />,
     children: [
-      { label: "General", href: "/settings", icon: "" },
-      { label: "ERP Integration", href: "/settings/erp", icon: "" },
+      { label: "General", href: "/settings", icon: <Settings size={18} /> },
+      { label: "ERP Integration", href: "/settings/erp", icon: <Settings size={18} /> },
     ],
   },
 ];
@@ -150,7 +139,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               disabled={loggingOut}
               className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors disabled:opacity-50"
             >
-              {loggingOut ? "..." : "Logout"}
+              {loggingOut ? "..." : <span className="flex items-center gap-1"><LogOut size={12} />Logout</span>}
             </button>
           </div>
         </div>

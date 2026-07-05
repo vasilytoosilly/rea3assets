@@ -125,7 +125,7 @@ export default function PipelinesPage() {
       {!loading && !error && pipelines.length > 0 && (
         <div className="space-y-4">
           {pipelines.map((pipeline) => (
-            <Card key={pipeline.id} className="border-[var(--border-default)]">
+            <Card key={pipeline.id} className="border-[var(--border-default)]" href={`/pipelines/${pipeline.id}`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">

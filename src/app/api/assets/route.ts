@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
     const division = searchParams.get("division");
     const status = searchParams.get("status");
     const search = searchParams.get("search");
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "25", 10)));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
@@ -34,17 +36,25 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const assets = await prisma.asset.findMany({
-      where,
-      include: {
-        asset_type: { select: { slug: true, name: true, icon: true } },
-        versions: { select: { id: true, version: true, status: true }, orderBy: { created_at: "desc" }, take: 1 },
-        _count: { select: { versions: true, thumbnails: true } },
-      },
-      orderBy: { created_at: "desc" },
-    });
+    const [assets, total] = await Promise.all([
+      prisma.asset.findMany({
+        where,
+        include: {
+          asset_type: { select: { slug: true, name: true, icon: true } },
+          versions: { select: { id: true, version: true, status: true }, orderBy: { created_at: "desc" }, take: 1 },
+          _count: { select: { versions: true, thumbnails: true } },
+        },
+        orderBy: { created_at: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.asset.count({ where }),
+    ]);
 
-    return NextResponse.json(assets);
+    return NextResponse.json({
+      data: assets,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     logger.error("Failed to list assets", { error: String(error) });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

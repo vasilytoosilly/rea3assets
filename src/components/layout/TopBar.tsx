@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { Menu, Search } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Top bar — dark theme, search + branding
@@ -13,6 +15,7 @@ interface TopBarProps {
 export function TopBar({ onSidebarToggle }: TopBarProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const [searchValue, setSearchValue] = useState("");
+  const router = useRouter();
 
   // Global "/" key to focus search
   useEffect(() => {
@@ -29,6 +32,15 @@ export function TopBar({ onSidebarToggle }: TopBarProps) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const handleSearch = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter" && searchValue.trim()) {
+        router.push(`/assets?search=${encodeURIComponent(searchValue.trim())}`);
+      }
+    },
+    [searchValue, router],
+  );
 
   return (
     <header
@@ -47,45 +59,21 @@ export function TopBar({ onSidebarToggle }: TopBarProps) {
         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
         aria-label="Toggle sidebar"
       >
-        <svg
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-          />
-        </svg>
+        <Menu size={20} />
       </button>
 
       {/* Center: search */}
       <div className="flex flex-1 items-center">
         <div className="relative w-full max-w-xl">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg
-              className="h-4 w-4"
-              style={{ color: "var(--text-muted)" }}
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-              />
-            </svg>
+            <Search size={16} style={{ color: "var(--text-muted)" }} />
           </div>
           <input
             ref={searchRef}
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={handleSearch}
             placeholder="Search assets, types, tags... (press / to focus)"
             className="block w-full rounded-lg border py-2 pl-10 pr-4 text-sm transition-colors focus:outline-none focus:ring-1"
             style={{
@@ -124,7 +112,7 @@ export function TopBar({ onSidebarToggle }: TopBarProps) {
             border: "1px solid var(--accent)",
           }}
         >
-          DEV
+          {process.env.NODE_ENV === "production" ? "PROD" : "DEV"}
         </span>
       </div>
     </header>
