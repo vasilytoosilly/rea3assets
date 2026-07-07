@@ -35,10 +35,31 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
 
-    const body = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
     const parsed = assignTagsSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
+    }
+
+    // Validate all tag IDs exist before replacing assignments
+    if (parsed.data.tag_ids.length > 0) {
+      const existingTags = await prisma.tag.findMany({
+        where: { id: { in: parsed.data.tag_ids } },
+        select: { id: true },
+      });
+      const existingIds = new Set(existingTags.map((t) => t.id));
+      const invalid = parsed.data.tag_ids.filter((tid) => !existingIds.has(tid));
+      if (invalid.length > 0) {
+        return NextResponse.json(
+          { error: `${invalid.length} tag ID${invalid.length !== 1 ? "s" : ""} not found` },
+          { status: 400 },
+        );
+      }
     }
 
     // Replace all tag assignments in a transaction
