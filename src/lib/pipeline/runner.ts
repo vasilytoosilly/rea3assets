@@ -2,6 +2,31 @@ import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { getProcessor } from "./registry";
 
+const STALE_RUN_TIMEOUT_MS = 60 * 60 * 1000; // 1 hour
+
+/**
+ * Mark runs stuck in "running" state as "failed" with an error message.
+ * Called at runner startup to clean up orphaned runs from process crashes.
+ */
+export async function recoverStaleRuns(): Promise<number> {
+  const cutoff = new Date(Date.now() - STALE_RUN_TIMEOUT_MS);
+  const result = await prisma.pipelineRun.updateMany({
+    where: {
+      status: "running",
+      started_at: { lt: cutoff },
+    },
+    data: {
+      status: "failed",
+      completed_at: new Date(),
+      error_message: "Run timed out — process may have crashed or stalled",
+    },
+  });
+  if (result.count > 0) {
+    logger.warn("Recovered stale pipeline runs", { count: result.count });
+  }
+  return result.count;
+}
+
 /**
  * Executes every step of a pipeline run in sort_order, invoking the
  * registered processor function for each step and recording results.
@@ -63,11 +88,21 @@ export async function runPipeline(pipelineRunId: string): Promise<void> {
     });
 
     if (!stepResult) {
-      logger.warn("No PipelineStepResult found, creating one on the fly", {
+      logger.error("No PipelineStepResult found for step", {
         run_id: pipelineRunId,
         processor: step.processor,
       });
-      continue;
+      finalStatus = "failed";
+      finalError = `Missing PipelineStepResult for processor '${step.processor}'`;
+      await prisma.pipelineStepResult.create({
+        data: {
+          run_id: pipelineRunId,
+          processor: step.processor,
+          status: "failed",
+          error_message: finalError,
+        },
+      });
+      break;
     }
 
     // Mark step as running
