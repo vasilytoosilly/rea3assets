@@ -7,7 +7,7 @@ import path from "node:path";
 // ---------------------------------------------------------------------------
 
 function getUploadDir(): string {
-  return process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads");
+  return process.env.UPLOAD_DIR ?? path.join(/* turbopackIgnore: true */ process.cwd(), "uploads");
 }
 
 // Minimal MIME map for common extensions
