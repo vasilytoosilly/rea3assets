@@ -11,6 +11,7 @@ export default function ErpSettingsPage() {
   const [erpUrl, setErpUrl] = useState("");
   const [hasApiKey, setHasApiKey] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
+  const [configError, setConfigError] = useState<string | null>(null);
   const [testStatus, setTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [testMessage, setTestMessage] = useState("");
 
@@ -21,7 +22,7 @@ export default function ErpSettingsPage() {
         setErpUrl(data.erp_url ?? "http://localhost:3000");
         setHasApiKey(data.has_api_key ?? false);
       })
-      .catch(() => {})
+      .catch((err) => setConfigError(String(err)))
       .finally(() => setLoadingConfig(false));
   }, []);
 
@@ -50,6 +51,13 @@ export default function ErpSettingsPage() {
         title="ERP Integration"
         subtitle="Configure connectivity with the ReA3 core ERP for SKU sync."
       />
+
+      {configError && (
+        <div className="rounded-md border p-3 text-sm"
+          style={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-muted)", color: "var(--accent)" }}>
+          Failed to load ERP config: {configError}
+        </div>
+      )}
 
       <Card className="border-[var(--border-default)]">
         <CardHeader>

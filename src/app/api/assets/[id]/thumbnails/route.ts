@@ -51,6 +51,15 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const stored = await storage.store(fileField.name, buffer, fileField.type || "image/png");
     const fmt = fileField.name.split(".").pop()?.toLowerCase() ?? "png";
 
+    // Validate format is an accepted image type
+    const ACCEPTED_FORMATS = ["png", "jpg", "jpeg", "gif", "webp", "svg"];
+    if (!ACCEPTED_FORMATS.includes(fmt)) {
+      return NextResponse.json(
+        { error: `Unsupported format: .${fmt}. Accepted: ${ACCEPTED_FORMATS.join(", ")}` },
+        { status: 400 },
+      );
+    }
+
     const thumbnail = await prisma.assetThumbnail.create({
       data: {
         asset_id: id,

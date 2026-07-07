@@ -18,6 +18,7 @@ const PUBLIC_ROUTES = [
   "/api/settings/erp-test",
   "/marketplace",
   "/api/marketplace",
+  "/api/files",
 ];
 
 function isPublic(pathname: string): boolean {

@@ -19,18 +19,21 @@ interface SystemStatus {
   pipelines: number;
   has_auth: boolean;
   has_erp_key: boolean;
+  erp_status: "connected" | "disconnected" | "untested";
+  erp_url: string;
   upload_dir: string;
 }
 
 export default function SettingsPage() {
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/settings/status")
       .then((r) => r.json())
       .then(setStatus)
-      .catch(() => {})
+      .catch((err) => setLoadError(String(err)))
       .finally(() => setLoading(false));
   }, []);
 
@@ -40,6 +43,14 @@ export default function SettingsPage() {
         title="Settings"
         subtitle="Application status and configuration overview."
       />
+
+      {loadError && (
+        <div className="rounded-md border p-3 text-sm"
+          style={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-muted)", color: "var(--accent)" }}>
+          Failed to load status: {loadError}
+          <button onClick={() => { setLoadError(null); window.location.reload(); }} className="ml-2 text-xs opacity-70 hover:opacity-100">Retry</button>
+        </div>
+      )}
 
       <Card className="border-[var(--border-default)]">
         <CardHeader>

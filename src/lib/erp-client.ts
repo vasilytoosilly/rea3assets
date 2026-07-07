@@ -11,6 +11,9 @@ function getConfig() {
   if (!apiKey) {
     logger.warn("ERP_INTERNAL_API_KEY not set — ERP sync calls will be skipped");
   }
+  if (!process.env.ERP_INTERNAL_URL) {
+    logger.warn("ERP_INTERNAL_URL not set — defaulting to http://localhost:3000");
+  }
 
   return { baseUrl, apiKey };
 }

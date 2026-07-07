@@ -23,16 +23,19 @@ export function Gallery({ thumbnails }: { thumbnails: Thumbnail[] }) {
 
   const [selectedIdx, setSelectedIdx] = useState(0);
 
-  const goTo = useCallback(
-    (idx: number) => {
-      if (sorted.length === 0) return;
-      setSelectedIdx(((idx % sorted.length) + sorted.length) % sorted.length);
-    },
-    [sorted.length]
-  );
+  const goPrev = useCallback(() => {
+    setSelectedIdx((prev) => {
+      if (sorted.length === 0) return prev;
+      return ((prev - 1) % sorted.length + sorted.length) % sorted.length;
+    });
+  }, [sorted.length]);
 
-  const goPrev = useCallback(() => goTo(selectedIdx - 1), [selectedIdx, goTo]);
-  const goNext = useCallback(() => goTo(selectedIdx + 1), [selectedIdx, goTo]);
+  const goNext = useCallback(() => {
+    setSelectedIdx((prev) => {
+      if (sorted.length === 0) return prev;
+      return ((prev + 1) % sorted.length + sorted.length) % sorted.length;
+    });
+  }, [sorted.length]);
 
   // Keyboard navigation
   useEffect(() => {
