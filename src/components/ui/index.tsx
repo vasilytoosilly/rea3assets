@@ -247,22 +247,24 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon, description }: StatCardProps) {
   return (
-    <Card className="border-[var(--border-default)]">
+    <Card className="border-[var(--border-default)] hover:border-[var(--border-active)] transition-colors duration-200 group">
       <CardBody>
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
-            {label}
-          </h3>
-          <span className="text-[var(--text-muted)]" aria-hidden="true">
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 text-[var(--accent)] group-hover:scale-110 transition-transform duration-200" aria-hidden="true">
             {icon}
           </span>
+          <div className="min-w-0">
+            <h3 className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
+              {label}
+            </h3>
+            <p className="mt-1 text-2xl font-bold text-[var(--text-primary)] tabular-nums">
+              {value}
+            </p>
+            {description && (
+              <p className="mt-0.5 text-xs text-[var(--text-muted)]">{description}</p>
+            )}
+          </div>
         </div>
-        <p className="mt-2 text-2xl font-semibold text-[var(--text-primary)]">
-          {value}
-        </p>
-        {description && (
-          <p className="mt-1 text-xs text-[var(--text-muted)]">{description}</p>
-        )}
       </CardBody>
     </Card>
   );

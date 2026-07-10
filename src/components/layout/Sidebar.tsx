@@ -11,6 +11,7 @@ import {
   Settings2,
   Settings,
   LogOut,
+  ChevronRight,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -222,7 +223,7 @@ function SidebarItem({ item, isActive, pathname }: SidebarItemProps) {
           }`}
           aria-hidden="true"
         >
-          ▸
+          <ChevronRight size={14} />
         </span>
       </button>
 
