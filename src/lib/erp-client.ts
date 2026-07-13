@@ -64,7 +64,7 @@ function circuitBreakerConfig() {
 }
 
 function checkCircuit(): string | null {
-  const { threshold: _threshold, cooldownMs } = circuitBreakerConfig();
+  const { cooldownMs } = circuitBreakerConfig();
   if (!circuit.open) return null;
   if (Date.now() - circuit.lastFailure > cooldownMs) {
     circuit.open = false;

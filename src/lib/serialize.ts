@@ -11,16 +11,18 @@
  */
 export function serializeBigInts<T>(obj: T): T {
   if (obj === null || obj === undefined) return obj;
-  if (typeof obj === "bigint") return Number(obj) as any;
+  if (typeof obj === "bigint") return Number(obj) as unknown as T;
   if (Array.isArray(obj)) {
-    for (let i = 0; i < obj.length; i++) {
-      (obj as any)[i] = serializeBigInts((obj as any)[i]);
+    const arr = obj as unknown as unknown[];
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = serializeBigInts(arr[i]);
     }
     return obj;
   }
   if (typeof obj === "object") {
-    for (const key of Object.keys(obj as any)) {
-      (obj as any)[key] = serializeBigInts((obj as any)[key]);
+    const record = obj as Record<string, unknown>;
+    for (const key of Object.keys(record)) {
+      record[key] = serializeBigInts(record[key]);
     }
     return obj;
   }

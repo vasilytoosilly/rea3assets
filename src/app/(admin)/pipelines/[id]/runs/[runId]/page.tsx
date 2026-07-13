@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Badge } from "@/components/ui";
+import { Button, Badge, PROCESSOR_ICONS as PROCESSOR_ICON_MAP } from "@/components/ui";
+import { Workflow } from "lucide-react";
 
 interface StepResult {
   id: string;
   processor: string;
   status: string;
-  output: any;
+  output: unknown;
   error_message: string | null;
   started_at: string | null;
   completed_at: string | null;
@@ -31,11 +32,6 @@ interface RunDetail {
     asset: { id: string; name: string; slug: string };
   };
 }
-
-const PROCESSOR_ICONS: Record<string, string> = {
-  thumbnail: "🖼️", "validate-format": "✅", "optimize-mesh": "🔧",
-  "virus-scan": "🛡️", "generate-description": "🤖", watermark: "💧",
-};
 
 const PROCESSOR_LABELS: Record<string, string> = {
   thumbnail: "Generate Thumbnails", "validate-format": "Validate Format",
@@ -60,7 +56,7 @@ export default function PipelineRunPage() {
       const res = await fetch(`/api/pipelines/${id}`, { signal });
       if (!res.ok) throw new Error(`API returned ${res.status}`);
       const pipeline = await res.json();
-      const found = pipeline.runs?.find((r: any) => r.id === runId);
+      const found = pipeline.runs?.find((r: { id: string }) => r.id === runId);
       if (!found) throw new Error("Run not found");
       setRun({ ...found, pipeline: { id: pipeline.id, name: pipeline.name } });
     } catch (err) {
@@ -139,7 +135,7 @@ export default function PipelineRunPage() {
               <div key={step.id} className="rounded-md border p-3" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-lg">{PROCESSOR_ICONS[step.processor] ?? "⚙️"}</span>
+                    <span className="text-lg text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[step.processor] ?? Workflow; return <I size={18} />; })()}</span>
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">{PROCESSOR_LABELS[step.processor] ?? step.processor}</p>
                       <code className="text-[10px] text-[var(--text-muted)]">{step.processor}</code>
@@ -154,7 +150,7 @@ export default function PipelineRunPage() {
                   {step.started_at && <span>Started: {new Date(step.started_at).toLocaleString()}</span>}
                   {step.completed_at && <span>Done: {new Date(step.completed_at).toLocaleString()}</span>}
                 </div>
-                {step.output && <pre className="mt-2 rounded bg-[var(--bg-surface)] p-2 text-xs text-[var(--text-secondary)] overflow-auto">{JSON.stringify(step.output, null, 2)}</pre>}
+                {step.output != null && <pre className="mt-2 rounded bg-[var(--bg-surface)] p-2 text-xs text-[var(--text-secondary)] overflow-auto">{JSON.stringify(step.output, null, 2)}</pre>}
               </div>
             );
           })}

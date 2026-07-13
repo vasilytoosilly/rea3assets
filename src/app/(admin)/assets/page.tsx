@@ -11,6 +11,7 @@ import {
   Input,
   StatusBadge,
   EmptyState,
+  DynamicIcon,
 } from "@/components/ui";
 
 // ---------------------------------------------------------------------------
@@ -178,8 +179,8 @@ export default function AssetsPage() {
                   <td className="px-4 py-3">
                     <Link href={`/assets/${asset.id}`} className="block">
                       <div className="flex items-center gap-3">
-                        <span className="text-lg" aria-hidden="true">
-                          {asset.asset_type.icon ?? <Package size={20} />}
+                        <span className="text-lg text-[var(--accent)]" aria-hidden="true">
+                          <DynamicIcon name={asset.asset_type.icon} size={20} />
                         </span>
                         <div>
                           <p className="font-medium text-[var(--text-primary)]">{asset.name}</p>

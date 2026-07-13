@@ -5,12 +5,14 @@
 // based on the field_type. Used by both asset create and update routes.
 // Extracted here to eliminate DRY violation.
 
+import type { Prisma } from "@prisma/client";
+
 export interface FieldValueColumns {
   value_text?: string;
   value_number?: number;
   value_boolean?: boolean;
   value_date?: Date;
-  value_json?: any;
+  value_json?: Prisma.InputJsonValue;
 }
 
 /**
@@ -36,11 +38,11 @@ export function mapFieldValue(fieldType: string, value: unknown): FieldValueColu
       return { value_date: new Date(String(value)) };
     case "multi_select":
     case "tags":
-      return { value_json: value }; // JSON array
+      return { value_json: value as Prisma.InputJsonValue }; // JSON array
     case "richtext":
     case "image":
     case "file":
-      return { value_json: value };
+      return { value_json: value as Prisma.InputJsonValue };
     case "rating":
       return { value_number: Number(value) };
     default:

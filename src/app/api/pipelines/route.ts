@@ -33,8 +33,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
-    const asset_type_slug = body.asset_type_slug as string;
-    const { asset_type_slug: _, ...rest } = body;
+    const { asset_type_slug, ...rest } = body as { asset_type_slug: string; [key: string]: unknown };
 
     if (!asset_type_slug) {
       return NextResponse.json({ error: "asset_type_slug is required" }, { status: 400 });

@@ -40,12 +40,15 @@ function writeLog(level: LogLevel, message: string, context: Record<string, unkn
 
   switch (level) {
     case "error":
+      // eslint-disable-next-line no-console -- logger is the designated console output channel
       console.error(line);
       break;
     case "warn":
+      // eslint-disable-next-line no-console -- logger is the designated console output channel
       console.warn(line);
       break;
     default:
+      // eslint-disable-next-line no-console -- logger is the designated console output channel
       console.log(line);
       break;
   }

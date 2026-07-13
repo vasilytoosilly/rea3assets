@@ -17,6 +17,11 @@ export default defineConfig({
     testTimeout: 30_000,
     hookTimeout: 30_000,
     globals: false,
+    // All test files share a single PostgreSQL database, so parallel file
+    // execution would cause FK constraint violations during nukeTestData
+    // cleanup (one file deletes asset types while another still has assets
+    // referencing them). Disable parallelism to run files sequentially.
+    fileParallelism: false,
     include: ["__tests__/**/*.test.ts"],
     exclude: [
       "**/node_modules/**",

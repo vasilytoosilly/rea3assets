@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma, isPrismaConflict } from "@/lib/prisma";
 import { updateAssetSchema } from "@/lib/validations/assets";
 import { validateMetadata } from "@/lib/metadata-validator";
@@ -107,7 +108,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     // If metadata changed, re-validate against the type's field definitions
-    let validatedMetadata: Record<string, any> | undefined;
+    let validatedMetadata: Record<string, unknown> | undefined;
     if (parsed.data.metadata !== undefined) {
       const metadataResult = validateMetadata(
         parsed.data.metadata,
@@ -129,7 +130,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         data: {
           ...(parsed.data.name !== undefined && { name: parsed.data.name }),
           ...(parsed.data.description !== undefined && { description: parsed.data.description }),
-          ...(validatedMetadata !== undefined && { metadata: validatedMetadata }),
+          ...(validatedMetadata !== undefined && { metadata: validatedMetadata as Prisma.InputJsonValue }),
           ...(parsed.data.status !== undefined && {
             status: parsed.data.status,
             ...(parsed.data.status === "published" && !existing.published_at
@@ -143,7 +144,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       if (validatedMetadata !== undefined) {
         await tx.assetFieldValue.deleteMany({ where: { asset_id: id } });
 
-        const metadata = validatedMetadata as Record<string, any>;
+        const metadata = validatedMetadata as Record<string, unknown>;
         const filterableFields = existing.asset_type.fields.filter((f) => f.is_filterable);
 
         if (filterableFields.length > 0) {

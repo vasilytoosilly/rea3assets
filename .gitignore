@@ -42,3 +42,8 @@ prisma/migrations/
 
 # uploads
 /uploads/
+
+# binary assets (too large for git, use Git LFS or external storage)
+*.tar.gz
+*.zip
+dashboard-*.png

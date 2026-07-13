@@ -23,7 +23,7 @@
 | `--accent` | `#ff4d4d` | Primary actions, active states, brand |
 | `--accent-hover` | `#ff6666` | Hover on accent buttons |
 | `--accent-muted` | `rgba(255,77,77,0.15)` | Accent backgrounds |
-| Status colors | `#22c55e` / `#f59e0b` / `#ef4444` / `#737373` | Success, warning, error, neutral badges |
+| Status colors | `#22c55e` / `#f59e0b` / `#ef4444` / `#737373` / `#ff4d4d` | Success, warning, error, neutral, published(accent) badges |
 
 ## 3. Typography
 

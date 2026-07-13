@@ -18,6 +18,8 @@ export const fieldConfigSchema = z.object({
   step: z.number().optional(),
   accept: z.string().optional(),
   multiple: z.boolean().optional(),
+  max_tags: z.number().optional(),
+  unit: z.string().optional(),
 });
 
 export type FieldConfig = z.infer<typeof fieldConfigSchema>;

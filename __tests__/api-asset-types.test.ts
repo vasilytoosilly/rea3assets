@@ -87,7 +87,9 @@ describe("Asset Types API", () => {
   // -----------------------------------------------------------------------
 
   it("creates an asset type with valid data", async () => {
-    const slug = `__test_${runId}-post-test`;
+    // Slug must match /^[a-z0-9-]+$/ — underscores are rejected by Zod validation.
+    // Use hyphens only; keep the test marker in the name for nukeTestData cleanup.
+    const slug = `test-${runId}-post-test`;
     const res = await createHandler(
       new NextRequest("http://localhost/api/asset-types", {
         method: "POST",

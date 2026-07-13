@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: "/assets",
   output: "standalone",
   skipTrailingSlashRedirect: true,
   reactStrictMode: true,

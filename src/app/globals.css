@@ -37,7 +37,7 @@
   --status-draft: #737373;
   --status-review: #f59e0b;
   --status-approved: #22c55e;
-  --status-published: #3b82f6;
+  --status-published: #ff4d4d; /* accent coral — matches StatusBadge "accent" variant */
   --status-deprecated: #ef4444;
   --status-archived: #6b7280;
 

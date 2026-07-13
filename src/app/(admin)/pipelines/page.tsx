@@ -9,7 +9,9 @@ import {
   CardBody,
   Badge,
   EmptyState,
+  PROCESSOR_ICONS as PROCESSOR_ICON_MAP,
 } from "@/components/ui";
+import { Workflow } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Pipelines management page
@@ -24,7 +26,7 @@ interface AssetTypeSummary {
 interface PipelineStep {
   id: string;
   processor: string;
-  config: any;
+  config: Record<string, unknown> | null;
   sort_order: number;
   on_failure: string;
   created_at: string;
@@ -39,15 +41,6 @@ interface Pipeline {
   asset_type: AssetTypeSummary;
   _count: { runs: number };
 }
-
-const PROCESSOR_ICONS: Record<string, string> = {
-  thumbnail: "🖼️",
-  "validate-format": "✅",
-  "optimize-mesh": "🔧",
-  "virus-scan": "🛡️",
-  "generate-description": "🤖",
-  watermark: "💧",
-};
 
 const PROCESSOR_LABELS: Record<string, string> = {
   thumbnail: "Generate Thumbnails",
@@ -113,7 +106,7 @@ export default function PipelinesPage() {
 
       {!loading && !error && pipelines.length === 0 && (
         <EmptyState
-          icon="⚙️"
+          icon={<Workflow size={48} />}
           title="No pipelines yet"
           description="Create pipelines to automate processing when new asset versions are uploaded."
           action={
@@ -153,7 +146,7 @@ export default function PipelinesPage() {
                       <div key={step.id} className="flex items-center gap-3 rounded-md px-3 py-2"
                         style={{ backgroundColor: "var(--bg-elevated)" }}>
                         <span className="text-sm text-[var(--text-muted)]">{i + 1}.</span>
-                        <span className="text-base">{PROCESSOR_ICONS[step.processor] ?? "⚙️"}</span>
+                        <span className="text-base text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[step.processor] ?? Workflow; return <I size={18} />; })()}</span>
                         <span className="flex-1 text-sm text-[var(--text-primary)]">
                           {PROCESSOR_LABELS[step.processor] ?? step.processor}
                         </span>

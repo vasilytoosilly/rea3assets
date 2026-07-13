@@ -10,7 +10,9 @@ import {
   Badge,
   EmptyState,
   Input,
+  DynamicIcon,
 } from "@/components/ui";
+import { Puzzle } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Asset Types list page — fetches from API, creates via POST
@@ -40,13 +42,7 @@ const DIVISION_LABELS: Record<string, string> = {
   community: "Community",
 };
 
-const DIVISION_ICONS: Record<string, string> = {
-  vault_product: "📦",
-  vault_service: "🔧",
-  shop_product: "🛒",
-  shop_service: "💼",
-  community: "👥",
-};
+
 
 export default function AssetTypesPage() {
   const router = useRouter();
@@ -146,7 +142,7 @@ export default function AssetTypesPage() {
       {/* Types grid */}
       {!loading && !error && filteredTypes.length === 0 && (
         <EmptyState
-          icon="🧩"
+          icon={<Puzzle size={48} />}
           title={search ? "No matching types" : "No asset types yet"}
           description={
             search
@@ -197,8 +193,8 @@ function AssetTypeCard({ type }: { type: AssetType }) {
         {/* Header row */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl" aria-hidden="true">
-              {type.icon ?? DIVISION_ICONS[type.division] ?? "📦"}
+            <span className="text-2xl text-[var(--accent)]" aria-hidden="true">
+              <DynamicIcon name={type.icon} fallback={`division-${type.division}`} size={28} />
             </span>
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">

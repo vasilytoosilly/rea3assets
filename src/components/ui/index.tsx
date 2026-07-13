@@ -2,15 +2,25 @@
 
 import Link from "next/link";
 
+// Re-export shared icon helpers
+export {
+  DynamicIcon,
+  FIELD_TYPE_ICONS,
+  PROCESSOR_ICONS,
+  DIVISION_ICONS,
+} from "./DynamicIcon";
+
 // ---------------------------------------------------------------------------
 // Shared UI primitives — ReA3 Asset Manager dark theme
 // ---------------------------------------------------------------------------
 
 // --- Badge ---
 
+export type BadgeVariant = "default" | "accent" | "success" | "warning" | "error" | "muted";
+
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: "default" | "accent" | "success" | "warning" | "error" | "muted";
+  variant?: BadgeVariant;
   size?: "sm" | "md";
 }
 

@@ -10,6 +10,7 @@ import {
   Input,
   EmptyState,
 } from "@/components/ui";
+import { Tag as TagIcon } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Tags management page — manage tag groups and their tags
@@ -83,7 +84,7 @@ export default function TagsPage() {
       {/* Empty */}
       {!loading && !error && groups.length === 0 && (
         <EmptyState
-          icon="🏷️"
+          icon={<TagIcon size={48} />}
           title="No tag groups yet"
           description="Create tag groups like Genre, Art Style, or Game Engine to classify assets."
           action={

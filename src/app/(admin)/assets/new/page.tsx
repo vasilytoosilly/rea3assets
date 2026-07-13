@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { PageHeader, Button, Card, CardBody, Input } from "@/components/ui";
+import { PageHeader, Button, Card, CardBody, Input, DynamicIcon } from "@/components/ui";
+import type { FieldConfig } from "@/lib/validations/fields";
+import { ImageIcon, File as FileIcon } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // New Asset form — schema-driven: fields are fetched from the selected type
@@ -22,7 +24,7 @@ interface FieldDef {
   slug: string;
   label: string;
   field_type: string;
-  config: any;
+  config: FieldConfig | null;
   is_required: boolean;
   is_filterable: boolean;
   is_showcase: boolean;
@@ -40,7 +42,7 @@ export default function NewAssetPage() {
   const [selectedType, setSelectedType] = useState<string>("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [metadata, setMetadata] = useState<Record<string, any>>({});
+  const [metadata, setMetadata] = useState<Record<string, unknown>>({});
   const [submitting, setSubmitting] = useState(false);
 
   // Fetch asset types
@@ -159,7 +161,7 @@ export default function NewAssetPage() {
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{t.icon ?? "📦"}</span>
+                    <span className="text-lg text-[var(--accent)]"><DynamicIcon name={t.icon} size={22} /></span>
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">{t.name}</p>
                       <p className="text-xs text-[var(--text-muted)]">{t.division.replace(/_/g, " ")}</p>
@@ -254,8 +256,8 @@ function DynamicField({
   onChange,
 }: {
   field: FieldDef;
-  value: any;
-  onChange: (v: any) => void;
+  value: unknown;
+  onChange: (v: unknown) => void;
 }) {
   // All hooks at the top level — never conditionally
   const mountedRef = useRef(true);
@@ -289,7 +291,7 @@ function DynamicField({
           <input
             type={field.field_type === "color" ? "color" : "text"}
             placeholder={field.placeholder ?? ""}
-            value={value ?? ""}
+            value={String(value ?? "")}
             onChange={(e) => onChange(e.target.value || undefined)}
             className={baseInput}
           />
@@ -303,7 +305,7 @@ function DynamicField({
           {label}
           <textarea
             placeholder={field.placeholder ?? ""}
-            value={value ?? ""}
+            value={String(value ?? "")}
             onChange={(e) => onChange(e.target.value || undefined)}
             rows={3}
             className={baseInput}
@@ -313,7 +315,7 @@ function DynamicField({
       );
 
     case "number":
-    case "rating":
+    case "rating": {
       const cfg = field.config ?? {};
       const min = field.field_type === "rating" ? 1 : cfg.min;
       const max = field.field_type === "rating" ? cfg.max ?? 5 : cfg.max;
@@ -326,13 +328,13 @@ function DynamicField({
             max={max}
             step={cfg.step ?? "any"}
             placeholder={field.placeholder ?? ""}
-            value={value ?? ""}
+            value={String(value ?? "")}
             onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
             className={baseInput}
-          />
-          {helpText}
+          />            {helpText}
         </div>
       );
+    }
 
     case "boolean":
       return (
@@ -358,7 +360,7 @@ function DynamicField({
         <div>
           {label}
           <select
-            value={value ?? ""}
+            value={String(value ?? "")}
             onChange={(e) => onChange(e.target.value || undefined)}
             className={baseInput}
           >
@@ -413,7 +415,7 @@ function DynamicField({
           {label}
           <input
             type="date"
-            value={value ?? ""}
+            value={String(value ?? "")}
             onChange={(e) => onChange(e.target.value || undefined)}
             className={baseInput}
           />
@@ -483,7 +485,7 @@ function DynamicField({
           {label}
           <textarea
             placeholder={field.placeholder ?? "Markdown supported..."}
-            value={value ?? ""}
+            value={String(value ?? "")}
             onChange={(e) => onChange(e.target.value || undefined)}
             rows={5}
             className={`${baseInput} font-mono text-xs`}
@@ -519,8 +521,7 @@ function DynamicField({
           if (!mountedRef.current) return;
           setUploadError(String(err));
         } finally {
-          if (!mountedRef.current) return;
-          setUploading(false);
+          if (mountedRef.current) setUploading(false);
         }
       };
 
@@ -542,7 +543,7 @@ function DynamicField({
             <div className="flex items-center justify-between rounded-md border p-3"
               style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-lg">{field.field_type === "image" ? "🖼️" : "📎"}</span>
+                <span className="text-lg text-[var(--accent)]">{field.field_type === "image" ? <ImageIcon size={20} /> : <FileIcon size={20} />}</span>
                 <div className="truncate">
                   <p className="text-sm text-[var(--text-primary)] truncate">{fileValue.filename}</p>
                   {fileValue.size_bytes && (
@@ -571,7 +572,7 @@ function DynamicField({
                 <span className="text-xs text-[var(--text-muted)]">Uploading...</span>
               ) : (
                 <>
-                  <p className="text-lg mb-1">{field.field_type === "image" ? "🖼️" : "📎"}</p>
+                  <span className="mb-1 text-[var(--text-muted)]">{field.field_type === "image" ? <ImageIcon size={24} /> : <FileIcon size={24} />}</span>
                   <p className="text-xs text-[var(--text-muted)]">
                     Click to upload {field.field_type === "image" ? "an image" : "a file"}
                   </p>

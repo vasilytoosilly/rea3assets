@@ -11,6 +11,7 @@ export default function MarketplaceError({
   reset: () => void;
 }) {
   useEffect(() => {
+    // eslint-disable-next-line no-console -- error boundaries must log to console; server logger isn't available in client components
     console.error("Marketplace page render error", {
       message: error.message,
       digest: error.digest,

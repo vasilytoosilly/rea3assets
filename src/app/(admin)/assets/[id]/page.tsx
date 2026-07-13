@@ -10,7 +10,13 @@ import {
   Badge,
   StatusBadge,
   Input,
+  DynamicIcon,
+  type BadgeVariant,
 } from "@/components/ui";
+import type { FieldConfig } from "@/lib/validations/fields";
+import {
+  Check, X as XIcon, Star, Paperclip, Cog,
+} from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Asset detail page — metadata rendered per field_type, versions, tags
@@ -21,7 +27,7 @@ interface FieldDef {
   slug: string;
   label: string;
   field_type: string;
-  config: any;
+  config: FieldConfig | null;
   is_required: boolean;
   is_filterable: boolean;
   is_showcase: boolean;
@@ -59,7 +65,7 @@ interface FieldValue {
   value_number: string | null;
   value_boolean: boolean | null;
   value_date: string | null;
-  value_json: any;
+  value_json: unknown;
   field: { id: string; slug: string; label: string; field_type: string };
 }
 
@@ -70,7 +76,7 @@ interface AssetDetail {
   name: string;
   description: string | null;
   division: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   status: string;
   created_by: string | null;
   created_at: string;
@@ -181,8 +187,8 @@ export default function AssetDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <span className="text-4xl" aria-hidden="true">
-            {asset.asset_type.icon ?? "📦"}
+          <span className="text-4xl text-[var(--accent)]" aria-hidden="true">
+            <DynamicIcon name={asset.asset_type.icon} size={36} />
           </span>
           <div>
             <h1 className="text-2xl font-bold uppercase tracking-wider text-[var(--text-primary)]">
@@ -332,7 +338,7 @@ function MetadataTab({ asset }: { asset: AssetDetail }) {
 // Render a single metadata field by its field_type
 // ---------------------------------------------------------------------------
 
-function MetadataField({ field, value }: { field: FieldDef; value: any }) {
+function MetadataField({ field, value }: { field: FieldDef; value: unknown }) {
   return (
     <Card className="border-[var(--border-default)]">
       <CardBody className="py-3">
@@ -365,7 +371,7 @@ function MetadataField({ field, value }: { field: FieldDef; value: any }) {
 // Render a value based on its field_type
 // ---------------------------------------------------------------------------
 
-function renderFieldValue(fieldType: string, value: any): React.ReactNode {
+function renderFieldValue(fieldType: string, value: unknown): React.ReactNode {
   if (value === undefined || value === null) {
     return <span className="text-sm italic text-[var(--text-muted)]">Not set</span>;
   }
@@ -385,7 +391,7 @@ function renderFieldValue(fieldType: string, value: any): React.ReactNode {
             value ? "text-[#22c55e]" : "text-[var(--text-muted)]"
           }`}
         >
-          {value ? "✅ Yes" : "⬜ No"}
+          {value ? <><Check size={14} /> Yes</> : <>No</>}
         </span>
       );
 
@@ -445,27 +451,34 @@ function renderFieldValue(fieldType: string, value: any): React.ReactNode {
         </div>
       );
 
-    case "rating":
-      const stars = Number(value);
+    case "rating": {
+      const stars = Math.min(Number(value), 5);
       return (
-        <span className="text-lg">
-          {"⭐".repeat(Math.min(stars, 5))}
-          <span className="text-[var(--text-muted)]">{"⭐".repeat(Math.max(0, 5 - stars))}</span>
+        <span className="inline-flex items-center gap-0.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star
+              key={i}
+              size={16}
+              className={i < stars ? "fill-[var(--accent)] text-[var(--accent)]" : "text-[var(--text-muted)]"}
+            />
+          ))}
         </span>
       );
+    }
 
     case "richtext":
       return <span className="text-sm text-[var(--text-primary)]">{String(value).slice(0, 200)}{String(value).length > 200 ? "..." : ""}</span>;
 
     case "image":
     case "file":
-      if (typeof value === "object" && value?.filename) {
+      if (typeof value === "object" && value !== null && "filename" in value) {
+        const fv = value as { filename: string; size_bytes?: number };
         return (
           <span className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-            📎 {value.filename}
-            {value.size_bytes && (
+            <Paperclip size={14} /> {fv.filename}
+            {fv.size_bytes && (
               <span className="text-xs text-[var(--text-muted)]">
-                ({formatBytes(value.size_bytes)})
+                ({formatBytes(fv.size_bytes)})
               </span>
             )}
           </span>
@@ -549,8 +562,7 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
       if (!mountedRef.current) return;
       setUploadError(String(err));
     } finally {
-      if (!mountedRef.current) return;
-      setUploading(false);
+      if (mountedRef.current) setUploading(false);
     }
   };
 
@@ -615,7 +627,7 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
       ) : (
         <div className="space-y-2">
           {versions.map((v) => {
-            const statusVariant =
+            const statusVariant: BadgeVariant =
               v.status === "published" ? "success" :
               v.status === "deprecated" ? "error" :
               v.status === "processing" ? "warning" :
@@ -629,7 +641,7 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
                       <span className="text-sm font-mono font-semibold text-[var(--text-primary)]">
                         v{v.version}
                       </span>
-                      <Badge variant={statusVariant as any} size="sm">{v.status}</Badge>
+                      <Badge variant={statusVariant} size="sm">{v.status}</Badge>
                       {v.format && (
                         <Badge variant="muted" size="sm">{v.format}</Badge>
                       )}
@@ -638,7 +650,7 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
                           run.status === "completed" ? "success" :
                           run.status === "failed" ? "error" :
                           run.status === "running" ? "warning" : "muted"
-                        }>⚙ {run.status}</Badge>
+                        }><span className="inline-flex items-center gap-1"><Cog size={10} /> {run.status}</span></Badge>
                       ))}
                     </div>
                     <span className="text-xs text-[var(--text-muted)]">
@@ -884,8 +896,7 @@ function ThumbnailsTab({ assetId, thumbnails, onRefresh }: { assetId: string; th
       if (!mountedRef.current) return;
       alert(String(err));
     } finally {
-      if (!mountedRef.current) return;
-      setUploading(false);
+      if (mountedRef.current) setUploading(false);
     }
   };
 
@@ -899,8 +910,7 @@ function ThumbnailsTab({ assetId, thumbnails, onRefresh }: { assetId: string; th
       if (!mountedRef.current) return;
       alert(String(err));
     } finally {
-      if (!mountedRef.current) return;
-      setDeleting(null);
+      if (mountedRef.current) setDeleting(null);
     }
   };
 
@@ -932,7 +942,7 @@ function ThumbnailsTab({ assetId, thumbnails, onRefresh }: { assetId: string; th
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Badge size="sm">{t.purpose}</Badge>
                 <Button size="sm" variant="danger" onClick={() => handleDelete(t.id)} disabled={deleting === t.id}>
-                  {deleting === t.id ? "..." : "✕"}
+                  {deleting === t.id ? "..." : <XIcon size={14} />}
                 </Button>
               </div>
               <div className="px-2 py-1.5">
@@ -965,7 +975,7 @@ function DependenciesTab({ assetId, onRefresh }: { assetId: string; onRefresh: (
       if (dRes.ok) setDeps(await dRes.json());
       if (aRes.ok) {
         const body = await aRes.json();
-        setAssets(body.data.filter((a: any) => a.id !== assetId));
+        setAssets(body.data.filter((a: { id: string; name: string; slug: string }) => a.id !== assetId));
       }
     } catch (err) {
       setDepsError(String(err));

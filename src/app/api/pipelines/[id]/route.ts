@@ -80,7 +80,16 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
     if (!existing) {
       return NextResponse.json({ error: "Pipeline not found" }, { status: 404 });
     }
-    // Cascade: steps are deleted by Prisma cascade, runs are kept
+    // Cascade: delete step results for all runs, then runs, steps, and the pipeline itself
+    const runs = await prisma.pipelineRun.findMany({
+      where: { pipeline_id: id },
+      select: { id: true },
+    });
+    if (runs.length > 0) {
+      const runIds = runs.map((r) => r.id);
+      await prisma.pipelineStepResult.deleteMany({ where: { run_id: { in: runIds } } });
+      await prisma.pipelineRun.deleteMany({ where: { id: { in: runIds } } });
+    }
     await prisma.pipelineStep.deleteMany({ where: { pipeline_id: id } });
     await prisma.pipelineConfig.delete({ where: { id } });
     logger.info("Pipeline deleted", { id });

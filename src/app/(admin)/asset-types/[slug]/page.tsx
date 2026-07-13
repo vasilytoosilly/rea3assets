@@ -9,7 +9,11 @@ import {
   CardBody,
   Badge,
   Input,
+  DynamicIcon,
+  FIELD_TYPE_ICONS as FIELD_ICON_MAP,
 } from "@/components/ui";
+import type { FieldConfig } from "@/lib/validations/fields";
+import { Package, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Asset Type detail page — fetch from API, manage fields
@@ -36,7 +40,7 @@ interface Field {
   slug: string;
   label: string;
   field_type: string;
-  config: any;
+  config: FieldConfig | null;
   is_required: boolean;
   is_filterable: boolean;
   is_showcase: boolean;
@@ -60,23 +64,6 @@ const FIELD_TYPE_LABELS: Record<string, string> = {
   tags: "Tags",
   color: "Color",
   rating: "Rating",
-};
-
-const FIELD_TYPE_ICONS: Record<string, string> = {
-  text: "📝",
-  textarea: "📄",
-  number: "🔢",
-  boolean: "✅",
-  select: "📋",
-  multi_select: "🏷️",
-  date: "📅",
-  url: "🔗",
-  image: "🖼️",
-  file: "📎",
-  richtext: "📰",
-  tags: "🏷️",
-  color: "🎨",
-  rating: "⭐",
 };
 
 export default function AssetTypeDetailPage() {
@@ -184,8 +171,8 @@ export default function AssetTypeDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <span className="text-4xl" aria-hidden="true">
-            {type.icon ?? "📦"}
+          <span className="text-4xl text-[var(--accent)]" aria-hidden="true">
+            <DynamicIcon name={type.icon} size={36} />
           </span>
           <div>
             <h1 className="text-2xl font-bold uppercase tracking-wider text-[var(--text-primary)]">
@@ -338,8 +325,8 @@ function FieldRow({ field, confirming, onDeleteClick, onCancelDelete }: { field:
     <Card className="border-[var(--border-default)]">
       <CardBody className="py-3">
         <div className="flex items-center gap-4">
-          <span className="cursor-grab text-[var(--text-muted)]" aria-hidden="true">⠿</span>
-          <span className="text-lg" aria-hidden="true">{FIELD_TYPE_ICONS[field.field_type] ?? "📝"}</span>
+          <span className="cursor-grab text-[var(--text-muted)]" aria-hidden="true"><GripVertical size={16} /></span>
+          <span className="text-lg text-[var(--accent)]" aria-hidden="true">{(() => { const I = FIELD_ICON_MAP[field.field_type] ?? Package; return <I size={20} />; })()}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-[var(--text-primary)]">{field.label}</span>
@@ -357,7 +344,7 @@ function FieldRow({ field, confirming, onDeleteClick, onCancelDelete }: { field:
           </div>
           <div className="flex items-center gap-1">
             <button onClick={() => setExpanded(!expanded)} className="rounded p-1.5 text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]" aria-label={expanded ? "Collapse" : "Expand"}>
-              {expanded ? "▲" : "▼"}
+              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             {confirming ? (
               <div className="flex items-center gap-1 ml-2">
@@ -366,7 +353,7 @@ function FieldRow({ field, confirming, onDeleteClick, onCancelDelete }: { field:
                 <button onClick={onCancelDelete} className="rounded px-2 py-0.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">No</button>
               </div>
             ) : (
-              <button onClick={onDeleteClick} className="rounded p-1.5 text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]" aria-label="Delete field">🗑️</button>
+              <button onClick={onDeleteClick} className="rounded p-1.5 text-[var(--text-muted)] transition-colors hover:text-[var(--accent)]" aria-label="Delete field"><Trash2 size={16} /></button>
             )}
           </div>
         </div>
@@ -582,7 +569,7 @@ function AddFieldModal({ slug, onClose, onCreated }: { slug: string; onClose: ()
               className="block w-full rounded-md border px-3 py-2 text-sm"
               style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border-default)", color: "var(--text-primary)" }}>
               {Object.entries(FIELD_TYPE_LABELS).map(([value, lab]) => (
-                <option key={value} value={value}>{FIELD_TYPE_ICONS[value]} {lab}</option>
+                <option key={value} value={value}>{lab}</option>
               ))}
             </select>
           </div>

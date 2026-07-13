@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod/v4";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
-import { runPipeline } from "@/lib/pipeline/runner";
+import { runPipeline, recoverStaleRuns } from "@/lib/pipeline/runner";
 
 // ---------------------------------------------------------------------------
 // POST /api/pipelines/[id]/run  → trigger a pipeline run for a specific asset version
@@ -16,7 +16,22 @@ const runPipelineSchema = z.object({
   asset_version_id: z.string().uuid(),
 });
 
+// Recover stale runs on first pipeline invocation (idempotent, no-op if none)
+let staleRecoveryDone = false;
+
 export async function POST(request: NextRequest, { params }: RouteContext) {
+  if (!staleRecoveryDone) {
+    staleRecoveryDone = true;
+    try {
+      const recovered = await recoverStaleRuns();
+      if (recovered > 0) {
+        logger.warn("Recovered stale pipeline runs before starting new run", { count: recovered });
+      }
+    } catch (err) {
+      logger.warn("Failed to recover stale runs", { error: String(err) });
+    }
+  }
+
   try {
     const { id } = await params;
 

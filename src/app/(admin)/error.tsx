@@ -11,6 +11,7 @@ export default function AdminError({
   reset: () => void;
 }) {
   useEffect(() => {
+    // eslint-disable-next-line no-console -- error boundaries must log to console; server logger isn't available in client components
     console.error("Admin page render error", {
       message: error.message,
       digest: error.digest,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
@@ -23,11 +24,16 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "24", 10)));
     const sort = searchParams.get("sort") ?? "newest";
 
+    // Build the asset-type filter (always restrict to public types)
+    const assetTypeFilter: Prisma.AssetTypeWhereInput = { is_public: true };
+    if (assetTypeSlug) {
+      assetTypeFilter.slug = assetTypeSlug;
+    }
+
     // Base filter: only published assets with public asset types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: Record<string, any> = {
+    const where: Prisma.AssetWhereInput = {
       status: "published",
-      asset_type: { is_public: true },
+      asset_type: assetTypeFilter,
     };
 
     if (search) {
@@ -35,10 +41,6 @@ export async function GET(request: NextRequest) {
         { name: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
       ];
-    }
-
-    if (assetTypeSlug) {
-      where.asset_type.slug = assetTypeSlug;
     }
 
     if (division) {
@@ -62,8 +64,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Sort order
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let orderBy: any;
+    let orderBy: Prisma.AssetOrderByWithRelationInput;
     switch (sort) {
       case "oldest":
         orderBy = { created_at: "asc" };
@@ -137,7 +138,7 @@ export async function GET(request: NextRequest) {
  * Compute available filter options (asset types, divisions, tags) from the
  * matching result set after all active filters have been applied.
  */
-async function computeFilters(where: Record<string, unknown>): Promise<FilterResult> {
+async function computeFilters(where: Prisma.AssetWhereInput): Promise<FilterResult> {
   // Get all matching asset IDs without pagination
   const matchingAssets = await prisma.asset.findMany({
     where,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma, type VersionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { serializeBigInts } from "@/lib/serialize";
@@ -38,17 +39,17 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       format?: string;
     };
 
-    const data: Record<string, any> = {};
-    if (status !== undefined) data.status = status;
+    const data: Record<string, unknown> = {};
+    if (status !== undefined) data.status = status as VersionStatus;
     if (changelog !== undefined) data.changelog = changelog;
     if (file_path !== undefined) data.file_path = file_path;
-    if (file_size !== undefined) data.file_size = BigInt(file_size);
+    if (file_size !== undefined) data.file_size = file_size ? BigInt(file_size) : null;
     if (file_hash !== undefined) data.file_hash = file_hash;
     if (format !== undefined) data.format = format;
 
     const updated = await prisma.assetVersion.update({
       where: { id: versionId },
-      data,
+      data: data as Prisma.AssetVersionUpdateInput,
     });
 
     logger.info("Asset version updated", { assetId: id, versionId, status: updated.status });

@@ -5,16 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Button,
   Badge,
+  PROCESSOR_ICONS as PROCESSOR_ICON_MAP,
 } from "@/components/ui";
-
-const PROCESSOR_ICONS: Record<string, string> = {
-  thumbnail: "🖼️",
-  "validate-format": "✅",
-  "optimize-mesh": "🔧",
-  "virus-scan": "🛡️",
-  "generate-description": "🤖",
-  watermark: "💧",
-};
+import { Workflow } from "lucide-react";
 
 const PROCESSOR_LABELS: Record<string, string> = {
   thumbnail: "Generate Thumbnails",
@@ -37,7 +30,7 @@ const KNOWN_PROCESSORS = [
 interface PipelineStep {
   id: string;
   processor: string;
-  config: any;
+  config: Record<string, unknown> | null;
   sort_order: number;
   on_failure: string;
   created_at: string;
@@ -422,8 +415,7 @@ function StepRow({
       )}
       <div className="flex items-center gap-3 rounded-md px-3 py-2.5"
         style={{ backgroundColor: "var(--bg-elevated)" }}>
-      <span className="w-6 text-center text-sm text-[var(--text-muted)]">{index + 1}</span>
-      <span className="text-lg">{PROCESSOR_ICONS[step.processor] ?? "⚙️"}</span>
+      <span className="w-6 text-center text-sm text-[var(--text-muted)]">{index + 1}</span>        <span className="text-lg text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[step.processor] ?? Workflow; return <I size={18} />; })()}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-[var(--text-primary)]">
@@ -549,7 +541,7 @@ function AddStepModal({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">{PROCESSOR_ICONS[p.id] ?? "⚙️"}</span>
+                    <span className="text-lg text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[p.id] ?? Workflow; return <I size={20} />; })()}</span>
                     <div>
                       <p className="text-sm font-medium text-[var(--text-primary)]">{p.label}</p>
                       <p className="text-xs text-[var(--text-muted)]">{p.description}</p>

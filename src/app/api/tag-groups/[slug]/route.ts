@@ -33,6 +33,12 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
   try {
     const { slug } = await params;
+
+    const existing = await prisma.tagGroup.findUnique({ where: { slug } });
+    if (!existing) {
+      return NextResponse.json({ error: "Tag group not found" }, { status: 404 });
+    }
+
     let body: unknown;
     try {
       body = await request.json();

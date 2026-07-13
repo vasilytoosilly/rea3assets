@@ -9,7 +9,7 @@ export async function POST() {
   try {
     await destroySession();
     return NextResponse.json({ message: "Logged out" });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

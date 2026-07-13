@@ -23,7 +23,7 @@ export async function GET() {
     erp_url: string;
     upload_dir: string;
   } = {
-    version: "0.4.0",
+    version: "0.5.0",
     environment: process.env.NODE_ENV ?? "development",
     database: "disconnected",
     db_name: "rea3_assets",

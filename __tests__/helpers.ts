@@ -268,36 +268,56 @@ export async function cleanupTestData(artifacts: {
 
 export async function nukeTestData(): Promise<void> {
   // Collect IDs in reverse-dependency order, then delete
+  //
+  // Search by BOTH slug and name containing "__test_" — some test slugs use
+  // hyphens-only (to pass Zod validation) while the test marker lives in the
+  // name field. Searching both ensures the safety net catches everything.
 
   // --- Asset cleanup ---
   const assetTypes = await prisma.assetType.findMany({
-    where: { slug: { contains: "__test_" } },
+    where: {
+      OR: [
+        { slug: { contains: "__test_" } },
+        { name: { contains: "__test_" } },
+      ],
+    },
     select: { id: true },
   });
   const assetTypeIds = assetTypes.map((a) => a.id);
 
-  // Find assets belonging to test asset types OR with test slugs
+  // Find assets belonging to test asset types OR with test slugs/names
   const assets = await prisma.asset.findMany({
     where: {
       OR: [
         { asset_type_id: { in: assetTypeIds } },
         { slug: { contains: "__test_" } },
+        { name: { contains: "__test_" } },
       ],
     },
     select: { id: true },
   });
   const assetIds = assets.map((a) => a.id);
 
-  // Pipeline configs
+  // Pipeline configs (belong to test asset types, or have test names)
   const pipelines = await prisma.pipelineConfig.findMany({
-    where: { asset_type_id: { in: assetTypeIds } },
+    where: {
+      OR: [
+        { asset_type_id: { in: assetTypeIds } },
+        { name: { contains: "__test_" } },
+      ],
+    },
     select: { id: true },
   });
   const pipelineIds = pipelines.map((p) => p.id);
 
-  // Tag groups
+  // Tag groups (by slug or name)
   const tagGroups = await prisma.tagGroup.findMany({
-    where: { slug: { contains: "__test_" } },
+    where: {
+      OR: [
+        { slug: { contains: "__test_" } },
+        { name: { contains: "__test_" } },
+      ],
+    },
     select: { id: true },
   });
   const tagGroupIds = tagGroups.map((g) => g.id);
@@ -333,9 +353,6 @@ export async function nukeTestData(): Promise<void> {
     await prisma.assetVersion.deleteMany({ where: { asset_id: { in: assetIds } } });
     await prisma.asset.deleteMany({ where: { id: { in: assetIds } } });
   }
-
-  // Also find standalone assets with __test_ in slug that might not match by type
-  // (already covered above via slug: contains query)
 
   // Asset types
   if (assetTypeIds.length > 0) {

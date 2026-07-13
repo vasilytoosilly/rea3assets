@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma, type AssetStatus, type Asset } from "@prisma/client";
 import { prisma, isPrismaConflict } from "@/lib/prisma";
 import { createAssetSchema } from "@/lib/validations/assets";
 import { validateMetadata } from "@/lib/metadata-validator";
@@ -20,15 +21,14 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") ?? "25", 10)));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: Prisma.AssetWhereInput = {};
 
     if (type) {
       const assetType = await prisma.assetType.findUnique({ where: { slug: type } });
       if (assetType) where.asset_type_id = assetType.id;
     }
     if (division) where.division = division;
-    if (status) where.status = status;
+    if (status) where.status = status as AssetStatus;
     if (search) {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       + "-" + Math.random().toString(36).slice(2, 8);
 
     let slug = generateSlug();
-    let created: any;
+    let created: Asset | undefined;
     const MAX_RETRIES = 3;
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          const metadata = validatedMetadata as Record<string, any>;
+          const metadata = validatedMetadata as Record<string, unknown>;
           const filterableFields = assetType.fields.filter((f) => f.is_filterable);
 
           if (filterableFields.length > 0) {
