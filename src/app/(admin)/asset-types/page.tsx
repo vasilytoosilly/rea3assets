@@ -9,7 +9,7 @@ import {
 import { Puzzle } from "lucide-react";
 
 // ---------------------------------------------------------------------------
-// Asset Types list page — cyberpunk dark aesthetic
+// Asset Types list page — define what kinds of assets exist
 // ---------------------------------------------------------------------------
 
 interface AssetType {
@@ -50,12 +50,17 @@ export default function AssetTypesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Asset Types" subtitle="Define what kinds of assets exist. Each type has custom fields, validation rules, and pipeline config."
-        action={<Button onClick={() => setShowCreateModal(true)}>+ New Type</Button>} />
+      <PageHeader
+        title="Asset Types"
+        subtitle="Define what kinds of assets exist. Each type has custom fields, validation rules, and pipeline config."
+        eyebrow="Schemas"
+        icon={<Puzzle size={20} />}
+        action={<Button onClick={() => setShowCreateModal(true)}>+ New Type</Button>}
+      />
 
       <div className="flex items-center gap-4">
         <Input placeholder="Search types..." value={search} onChange={setSearch} className="max-w-sm flex-1" />
-        <Badge variant="muted">{types.length} types</Badge>
+        <Badge variant="muted" size="md">{types.length} types</Badge>
       </div>
 
       {loading && (
@@ -98,24 +103,22 @@ export default function AssetTypesPage() {
 function AssetTypeCard({ type }: { type: AssetType }) {
   return (
     <a href={`/asset-types/${type.slug}`}
-      className="group block rounded-xl border p-5 transition-all duration-200 hover:border-[var(--border-active)] hover:shadow-[0_0_20px_rgba(255,77,77,0.04)]"
-      style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-elevated)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-surface)"; }}>
+      className="group block rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 transition-all duration-200 hover:border-[var(--border-active)] hover:bg-[var(--bg-elevated)] hover:shadow-[0_0_24px_rgba(255,77,77,0.04)]"
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-2xl text-[var(--accent)]" aria-hidden="true">
-            <DynamicIcon name={type.icon} fallback={`division-${type.division}`} size={28} />
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--accent)]" aria-hidden="true">
+            <DynamicIcon name={type.icon} fallback={`division-${type.division}`} size={22} />
           </span>
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">{type.name}</h3>
+            <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">{type.name}</h3>
             <p className="text-xs text-[var(--text-muted)]">{type.slug}</p>
           </div>
         </div>
         <Badge variant="accent" size="sm">{DIVISION_LABELS[type.division] ?? type.division}</Badge>
       </div>
       {type.description && <p className="mt-3 text-sm text-[var(--text-secondary)] line-clamp-2">{type.description}</p>}
-      <div className="mt-4 flex items-center gap-4 border-t pt-3" style={{ borderColor: "var(--border-subtle)" }}>
+      <div className="mt-4 flex items-center gap-4 border-t border-[var(--border-subtle)] pt-3">
         <span className="text-xs text-[var(--text-muted)]"><span className="font-medium text-[var(--text-secondary)]">{type.fields?.length ?? 0}</span> fields</span>
         <span className="text-xs text-[var(--text-muted)]"><span className="font-medium text-[var(--text-secondary)]">{type._count?.assets ?? 0}</span> assets</span>
         <div className="flex-1" />

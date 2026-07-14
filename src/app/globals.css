@@ -1,61 +1,81 @@
 @import "tailwindcss";
 
-/* --------------------------------------------------------------------------- 
-   ReA3 Asset Manager — Design Tokens
-   
-   Matches rea3.studio dark theme:
-   - Background: near-black (#0a0a0a)
-   - Surface: dark grey (#1a1a1a)
-   - Accent: coral/red (#ff4d4d)
-   - Text: white primary, light grey secondary
---------------------------------------------------------------------------- */
+/* ============================================================================
+   ReA3 Asset Manager — Design System
+   Visual reference: https://rea3.studio & erp.rea3.studio (dark, premium)
+
+   Key principles:
+   - Warm-toned blacks, never cold #000
+   - Text is softened off-white to reduce eye strain
+   - Coral accent (#ff4d4d) used sparingly for CTAs and active states
+   - Borders are subtle rgba whites for layered depth
+   - Typography driven by Inter, tight letter-spacing, uppercase labels
+   ============================================================================ */
 
 :root {
-  /* Backgrounds */
-  --bg-base: #0a0a0a;
-  --bg-surface: #141414;
-  --bg-elevated: #1a1a1a;
-  --bg-hover: #222222;
+  /* ── Backgrounds (warm-toned blacks) ───────────────────────────── */
+  --bg-base: #080808;
+  --bg-surface: #0f0f0f;
+  --bg-elevated: #161616;
+  --bg-hover: #1e1e1e;
+  --bg-input: #0c0c0c;
 
-  /* Borders */
-  --border-default: #262626;
-  --border-subtle: #1f1f1f;
-  --border-active: #404040;
+  /* ── Borders (subtle rgba whites) ──────────────────────────────── */
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-active: rgba(255, 255, 255, 0.14);
 
-  /* Text */
-  --text-primary: #ffffff;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
-  --text-inverse: #0a0a0a;
+  /* ── Text (softened off-white scale) ───────────────────────────── */
+  --text-primary: #e8e8ea;
+  --text-secondary: #a8a8b0;
+  --text-muted: #84848c;
+  --text-faint: #6e6e76;
+  --text-inverse: #080808;
 
-  /* Accent (coral/red — from rea3.studio) */
+  /* ── Accent: coral red ─────────────────────────────────────────── */
   --accent: #ff4d4d;
-  --accent-hover: #ff6666;
-  --accent-muted: rgba(255, 77, 77, 0.15);
+  --accent-hover: #ff6b6b;
+  --accent-foreground: #ffffff;
+  --accent-muted: rgba(255, 77, 77, 0.12);
+  --accent-border: rgba(255, 77, 77, 0.28);
 
-  /* Status */
+  /* ── Status ───────────────────────────────────────────────────── */
   --status-draft: #737373;
   --status-review: #f59e0b;
   --status-approved: #22c55e;
-  --status-published: #ff4d4d; /* accent coral — matches StatusBadge "accent" variant */
+  --status-published: #ff4d4d;
   --status-deprecated: #ef4444;
   --status-archived: #6b7280;
 
-  /* Spacing */
+  /* ── Spacing / Radius ─────────────────────────────────────────── */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
 }
 
-/* Base */
+/* =========================================================================
+   Base
+   ========================================================================= */
+
+html,
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.01em;
 }
 
-/* Scrollbar styling (dark theme) */
+* {
+  border-color: var(--border-default);
+}
+
+/* =========================================================================
+   Scrollbar — invisible until hover
+   ========================================================================= */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -66,27 +86,109 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* Focus ring */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+/* =========================================================================
+   Selection — subtle coral tint
+   ========================================================================= */
+
+::selection {
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+/* =========================================================================
+   Focus ring — coral, offset, visible keyboard only
+   ========================================================================= */
+
 *:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+  border-radius: 3px;
 }
 
-/* Selection */
-::selection {
-  background: var(--accent-muted);
-  color: var(--text-primary);
+*:focus:not(:focus-visible) {
+  outline: none;
 }
 
-/* Toast slide-in animation */
+/* =========================================================================
+   Links — coral accent, no underline by default
+   ========================================================================= */
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* =========================================================================
+   Typography utilities
+   ========================================================================= */
+
+/* Eyebrow / overline — the studio signature */
+.eyebrow {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+/* Label — for form fields and data keys */
+.label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+/* Monospace — for data, codes, numbers */
+.mono {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+}
+
+/* Tabular figures — for aligned numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================================
+   Animations
+   ========================================================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -98,20 +200,75 @@ body {
   }
 }
 
-/* Smooth page transitions */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* =========================================================================
+   Table overrides
+   ========================================================================= */
+
+table {
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
 }
 
-/* Table sticky header */
-.sticky-header thead th {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  backdrop-filter: blur(8px);
+thead th {
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.625rem;
+}
+
+tbody td {
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+}
+
+tr:hover td {
+  color: var(--text-primary);
+}
+
+/* =========================================================================
+   Input / form overrides
+   ========================================================================= */
+
+input,
+textarea,
+select {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent-border);
+  outline: none;
+}
+
+/* =========================================================================
+   Code blocks
+   ========================================================================= */
+
+code,
+pre {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 0.25rem;
+}
+
+pre {
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+}
+
+code {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.75rem;
 }

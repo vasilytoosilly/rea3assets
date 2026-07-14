@@ -35,7 +35,7 @@ export function Input({
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={inputId} className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+        <label htmlFor={inputId} className="label mb-1.5 block">
           {label}
           {required && <span className="ml-1 text-[var(--accent)]">*</span>}
         </label>
@@ -47,7 +47,7 @@ export function Input({
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         autoFocus={autoFocus}
-        className={`block w-full rounded-md border bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-all duration-150 focus:outline-none focus:ring-1 ${
+        className={`block w-full rounded-lg border bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-all duration-150 focus:outline-none focus:ring-1 ${
           error
             ? "border-[var(--status-deprecated)] focus:border-[var(--status-deprecated)] focus:ring-[var(--status-deprecated)]"
             : "border-[var(--border-default)] focus:border-[var(--accent)] focus:ring-[var(--accent)]"

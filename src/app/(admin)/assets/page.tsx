@@ -7,7 +7,6 @@ import { PageHeader, Button, Badge, Input, Select, StatusBadge, EmptyState, Erro
 
 // ---------------------------------------------------------------------------
 // Assets list page — browse, filter, search across all assets
-// Cyberpunk dark aesthetic with rounded-xl containers & hover glow rows
 // ---------------------------------------------------------------------------
 
 interface AssetTypeSummary { slug: string; name: string; icon: string | null; }
@@ -61,14 +60,19 @@ export default function AssetsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Assets" subtitle="Browse and manage all game-development assets across every type."
-        action={<Button onClick={() => router.push("/assets/new")}><Plus size={16} /> New Asset</Button>} />
+      <PageHeader
+        title="Assets"
+        subtitle="Browse and manage all game-development assets across every type."
+        eyebrow="Library"
+        icon={<Package size={20} />}
+        action={<Button onClick={() => router.push("/assets/new")}><Plus size={16} /> New Asset</Button>}
+      />
 
       <div className="flex flex-wrap items-center gap-3">
         <Input placeholder="Search assets..." value={search} onChange={(e) => { setSearch(e); setPage(1); }} className="max-w-sm flex-1" />
         <Select value={statusFilter} onChange={(e) => { setStatusFilter(e); setPage(1); }} options={STATUS_OPTIONS} placeholder="All statuses" />
         <Select value={typeFilter} onChange={(e) => { setTypeFilter(e); setPage(1); }} options={assetTypes.map((t) => ({ value: t.slug, label: t.name }))} placeholder="All types" />
-        <Badge variant="muted">{total} assets</Badge>
+        <Badge variant="muted" size="md">{total} assets</Badge>
       </div>
 
       {loading && (
@@ -89,8 +93,7 @@ export default function AssetsPage() {
       )}
 
       {!loading && !error && assets.length > 0 && (
-        <div className={`overflow-hidden rounded-xl border transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
-          style={{ borderColor: "var(--border-default)" }}>
+        <div className={`overflow-hidden rounded-xl border border-[var(--border-default)] transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="sticky-header">
@@ -105,11 +108,13 @@ export default function AssetsPage() {
               <tbody>
                 {assets.map((asset) => (
                   <tr key={asset.id}
-                    className="border-b border-[var(--border-subtle)] transition-all duration-150 hover:bg-[var(--bg-hover)] cursor-pointer"
+                    className="border-b border-[var(--border-subtle)] transition-colors duration-150 hover:bg-[var(--bg-hover)] cursor-pointer"
                     onClick={() => router.push(`/assets/${asset.id}`)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span className="text-lg text-[var(--accent)]" aria-hidden="true"><DynamicIcon name={asset.asset_type.icon} size={20} /></span>
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--accent)]" aria-hidden="true">
+                          <DynamicIcon name={asset.asset_type.icon} size={18} />
+                        </span>
                         <div>
                           <p className="font-medium text-[var(--text-primary)]">{asset.name}</p>
                           {asset.description && <p className="mt-0.5 text-xs text-[var(--text-muted)] line-clamp-1">{asset.description}</p>}
@@ -117,7 +122,7 @@ export default function AssetsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="hidden px-4 py-3 md:table-cell"><Badge size="sm">{asset.asset_type.name}</Badge></td>
+                    <td className="hidden px-4 py-3 md:table-cell"><Badge size="sm" variant="muted">{asset.asset_type.name}</Badge></td>
                     <td className="hidden px-4 py-3 sm:table-cell"><StatusBadge status={asset.status} /></td>
                     <td className="hidden px-4 py-3 lg:table-cell">
                       {asset.versions[0] ? <span className="text-xs text-[var(--text-secondary)]">v{asset.versions[0].version}</span> : <span className="text-xs text-[var(--text-muted)]">—</span>}

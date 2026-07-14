@@ -15,7 +15,7 @@ interface ErrorBannerProps {
 export function ErrorBanner({ message, onDismiss, onRetry }: ErrorBannerProps) {
   return (
     <div
-      className="flex items-start gap-3 rounded-md border border-[var(--status-deprecated)] bg-[rgba(239,68,68,0.1)] p-3 text-sm"
+      className="flex items-start gap-3 rounded-lg border border-[var(--status-deprecated)]/30 bg-[var(--status-deprecated)]/10 p-3 text-sm"
       style={{ color: "var(--status-deprecated)" }}
       role="alert"
     >
@@ -24,7 +24,7 @@ export function ErrorBanner({ message, onDismiss, onRetry }: ErrorBannerProps) {
       {onRetry && (
         <button
           onClick={onRetry}
-          className="shrink-0 text-xs font-medium uppercase tracking-wider underline hover:no-underline"
+          className="shrink-0 text-xs font-semibold uppercase tracking-wider underline hover:no-underline"
         >
           Retry
         </button>

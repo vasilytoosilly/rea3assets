@@ -26,7 +26,6 @@ export function Modal({ isOpen, onClose, title, description, children, footer, m
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
-    // Focus the modal container
     setTimeout(() => modalRef.current?.focus(), 0);
     document.body.style.overflow = "hidden";
     return () => {
@@ -40,14 +39,14 @@ export function Modal({ isOpen, onClose, title, description, children, footer, m
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative z-10 w-full ${maxWidth} rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-2xl outline-none`}
+        className={`relative z-10 w-full ${maxWidth} rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-2xl outline-none`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -56,7 +55,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer, m
         <div className="border-b border-[var(--border-default)] px-6 py-4">
           <div className="flex items-start justify-between">
             <div>
-              <h2 id="modal-title" className="text-lg font-bold uppercase tracking-wider text-[var(--text-primary)]">
+              <h2 id="modal-title" className="text-lg font-bold tracking-tight text-[var(--text-primary)]">
                 {title}
               </h2>
               {description && (

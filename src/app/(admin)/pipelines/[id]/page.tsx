@@ -158,7 +158,7 @@ export default function PipelineDetailPage() {
           </div>
           <Skeleton className="h-8 w-20 rounded-md" />
         </div>
-        <div className="rounded-md border border-[var(--border-default)] p-4">
+        <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4">
           <Skeleton className="mb-3 h-4 w-28" />
           <div className="flex items-end gap-3">
             <Skeleton className="h-10 flex-1 rounded-md" />
@@ -166,7 +166,7 @@ export default function PipelineDetailPage() {
           </div>
         </div>
         {[1,2,3].map((i) => (
-          <div key={i} className="flex items-center gap-3 rounded-md px-3 py-2.5 bg-[var(--bg-elevated)]">
+          <div key={i} className="flex items-center gap-3 rounded-lg bg-[var(--bg-elevated)] px-3 py-2.5">
             <Skeleton className="h-6 w-6" />
             <div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-40" /><Skeleton className="h-3 w-56" /></div>
             <Skeleton className="h-5 w-16 rounded-full" />
@@ -192,20 +192,20 @@ export default function PipelineDetailPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-        <a href="/pipelines" className="hover:text-[var(--text-primary)]">Pipelines</a>
-        <span>/</span>
+      <nav className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+        <a href="/pipelines" className="hover:text-[var(--accent)]">Pipelines</a>
+        <span className="opacity-40">/</span>
         <span className="text-[var(--text-primary)]">{pipeline.name}</span>
       </nav>
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold uppercase tracking-wider text-[var(--text-primary)]">
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
             {pipeline.name}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Badge>{pipeline.asset_type.name}</Badge>
-            {pipeline.is_default && <Badge variant="accent">Default</Badge>}
+            <Badge variant="muted" size="sm">{pipeline.asset_type.name}</Badge>
+            {pipeline.is_default && <Badge variant="accent" size="sm">Default</Badge>}
             <span className="text-xs text-[var(--text-muted)]">
               {sortedSteps.length} step{sortedSteps.length !== 1 ? "s" : ""}
               {" · "}{pipeline._count.runs} run{pipeline._count.runs !== 1 ? "s" : ""}
@@ -215,7 +215,7 @@ export default function PipelineDetailPage() {
         <div className="flex gap-2">
           {confirmDeletePipeline ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs" style={{ color: "var(--accent)" }}>Delete this pipeline?</span>
+              <span className="text-xs text-[var(--accent)]">Delete this pipeline?</span>
               <Button size="sm" variant="danger" onClick={handleDeletePipeline}>Yes</Button>
               <Button size="sm" variant="secondary" onClick={() => setConfirmDeletePipeline(false)}>No</Button>
             </div>
@@ -230,12 +230,12 @@ export default function PipelineDetailPage() {
       )}
 
       {/* Run Pipeline */}
-      <div className="rounded-md border p-4" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">Run Pipeline</h3>
+      <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4">
+        <h3 className="mb-3 text-sm font-semibold tracking-tight text-[var(--text-primary)]">Run Pipeline</h3>
         <div className="flex items-end gap-3">
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Asset Version</label>
             <Select
+              label="Asset Version"
               value={selectedVersion}
               onChange={setSelectedVersion}
               disabled={versionsLoading || assetVersions.length === 0}
@@ -286,8 +286,7 @@ export default function PipelineDetailPage() {
       </div>
 
       {sortedSteps.length === 0 ? (
-        <div className="rounded-lg border border-dashed px-8 py-16 text-center"
-          style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+        <div className="rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-16 text-center">
           <p className="text-sm text-[var(--text-muted)]">No steps configured.</p>
           <p className="mt-1 text-xs text-[var(--text-muted)]">
             Add steps to define what this pipeline does when an asset version is uploaded.
@@ -314,14 +313,14 @@ export default function PipelineDetailPage() {
 
       {pipeline.runs && pipeline.runs.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
             Recent Runs ({pipeline._count.runs})
           </h3>
           <div className="space-y-2">
             {pipeline.runs.map((run) => (
-              <div key={run.id} className="rounded-md border p-3 transition-colors hover:border-[var(--border-active)]" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
-                <div className="flex items-center justify-between mb-2">
-                  <a href={`/pipelines/${id}/runs/${run.id}`} className="text-sm font-medium text-[var(--text-primary)] hover:underline">
+              <div key={run.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3 transition-colors hover:border-[var(--border-active)]">
+                <div className="mb-2 flex items-center justify-between">
+                  <a href={`/pipelines/${id}/runs/${run.id}`} className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent)]">
                     Run {run.id.slice(0, 8)} — {run.asset_version.asset.name} v{run.asset_version.version}
                   </a>
                   <Badge size="sm" variant={run.status === "completed" ? "success" : run.status === "failed" ? "error" : run.status === "running" ? "warning" : "muted"}>
@@ -424,60 +423,60 @@ function StepRow({
           <ErrorBanner message={stepError} onDismiss={() => setStepError(null)} />
         </div>
       )}
-      <div className="flex items-center gap-3 rounded-md px-3 py-2.5"
-        style={{ backgroundColor: "var(--bg-elevated)" }}>
-      <span className="w-6 text-center text-sm text-[var(--text-muted)]">{index + 1}</span>        <span className="text-lg text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[step.processor] ?? Workflow; return <I size={18} />; })()}</span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-[var(--text-primary)]">
-            {PROCESSOR_LABELS[step.processor] ?? step.processor}
-          </span>
-          <code className="text-[10px] text-[var(--text-muted)]">{step.processor}</code>
-        </div>
-        {step.config && Object.keys(step.config).length > 0 && (
-          <code className="text-[10px] text-[var(--text-muted)]">{JSON.stringify(step.config)}</code>
-        )}
-      </div>
-
-      {editing ? (
-        <div className="flex items-center gap-2">
-          <Select
-            value={onFailure}
-            onChange={setOnFailure}
-            options={[
-              { value: "stop", label: "Stop pipeline" },
-              { value: "skip", label: "Skip step" },
-              { value: "warn", label: "Warn & continue" },
-            ]}
-            className="w-40"
-          />
-          <Button size="sm" variant="primary" onClick={handleSave} disabled={saving}>
-            {saving ? "..." : "Save"}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setOnFailure(step.on_failure); }}>
-            Cancel
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          <Badge
-            size="sm"
-            variant={step.on_failure === "stop" ? "error" : step.on_failure === "skip" ? "warning" : "muted"}
-          >
-            {step.on_failure}
-          </Badge>
-          <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>Edit</Button>
-          {confirming ? (
-            <div className="flex items-center gap-1">
-              <Button size="sm" variant="danger" onClick={handleConfirmDelete}>Remove</Button>
-              <Button size="sm" variant="ghost" onClick={onCancelDelete}>Keep</Button>
-            </div>
-          ) : (
-            <Button size="sm" variant="ghost" onClick={onDelete}>✕</Button>
+      <div className="flex items-center gap-3 rounded-xl bg-[var(--bg-elevated)] px-3 py-2.5">
+        <span className="w-6 text-center text-sm text-[var(--text-muted)]">{index + 1}</span>
+        <span className="text-lg text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[step.processor] ?? Workflow; return <I size={18} />; })()}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-[var(--text-primary)]">
+              {PROCESSOR_LABELS[step.processor] ?? step.processor}
+            </span>
+            <code className="text-[10px] text-[var(--text-muted)]">{step.processor}</code>
+          </div>
+          {step.config && Object.keys(step.config).length > 0 && (
+            <code className="text-[10px] text-[var(--text-muted)]">{JSON.stringify(step.config)}</code>
           )}
         </div>
-      )}
-    </div>
+
+        {editing ? (
+          <div className="flex items-center gap-2">
+            <Select
+              value={onFailure}
+              onChange={setOnFailure}
+              options={[
+                { value: "stop", label: "Stop pipeline" },
+                { value: "skip", label: "Skip step" },
+                { value: "warn", label: "Warn & continue" },
+              ]}
+              className="w-40"
+            />
+            <Button size="sm" variant="primary" onClick={handleSave} disabled={saving}>
+              {saving ? "..." : "Save"}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setOnFailure(step.on_failure); }}>
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Badge
+              size="sm"
+              variant={step.on_failure === "stop" ? "error" : step.on_failure === "skip" ? "warning" : "muted"}
+            >
+              {step.on_failure}
+            </Badge>
+            <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>Edit</Button>
+            {confirming ? (
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="danger" onClick={handleConfirmDelete}>Remove</Button>
+                <Button size="sm" variant="ghost" onClick={onCancelDelete}>Keep</Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="ghost" onClick={onDelete}>✕</Button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -543,13 +542,13 @@ function AddStepModal({
 
       <div className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Processor</label>
+          <label className="label mb-1.5 block">Processor</label>
           <div className="space-y-1">
             {KNOWN_PROCESSORS.map((p) => (
               <button
                 key={p.id}
                 onClick={() => setProcessor(p.id)}
-                className={`w-full rounded-md border px-3 py-2.5 text-left transition-colors ${
+                className={`w-full rounded-lg border px-3 py-2.5 text-left transition-colors ${
                   processor === p.id
                     ? "border-[var(--accent)] bg-[var(--accent-muted)]"
                     : "border-[var(--border-default)] hover:bg-[var(--bg-hover)]"

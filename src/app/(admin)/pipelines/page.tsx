@@ -5,7 +5,7 @@ import { PageHeader, Button, Badge, EmptyState, ErrorBanner, Modal, Select, Inpu
 import { Workflow } from "lucide-react";
 
 // ---------------------------------------------------------------------------
-// Pipelines management page — cyberpunk dark aesthetic
+// Pipelines management page — premium dark aesthetic
 // ---------------------------------------------------------------------------
 
 interface AssetTypeSummary { slug: string; name: string; icon: string | null; }
@@ -38,15 +38,20 @@ export default function PipelinesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Pipelines" subtitle="Define processing pipelines per asset type — thumbnail generation, format validation, mesh optimization, and more."
-        action={<Button onClick={() => setShowCreate(true)}>+ New Pipeline</Button>} />
+      <PageHeader
+        title="Pipelines"
+        subtitle="Define processing pipelines per asset type — thumbnail generation, format validation, mesh optimization, and more."
+        eyebrow="Automation"
+        icon={<Workflow size={20} />}
+        action={<Button onClick={() => setShowCreate(true)}>+ New Pipeline</Button>}
+      />
 
       {loading && (
         <div className="space-y-4" aria-hidden="true">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)]">
               <div className="border-b border-[var(--border-default)] px-5 py-4"><Skeleton className="h-4 w-40" /><div className="mt-2 flex gap-2"><Skeleton className="h-5 w-20 rounded-full" /><Skeleton className="h-5 w-16 rounded-full" /></div></div>
-              <div className="px-5 py-4 space-y-2">{Array.from({ length: 2 }).map((_, j) => (<div key={j} className="flex items-center gap-3 rounded-lg px-3 py-2" style={{ backgroundColor: "var(--bg-elevated)" }}><Skeleton className="h-5 w-5" /><Skeleton className="h-4 flex-1" /><Skeleton className="h-5 w-16 rounded-full" /></div>))}</div>
+              <div className="px-5 py-4 space-y-2">{Array.from({ length: 2 }).map((_, j) => (<div key={j} className="flex items-center gap-3 rounded-lg bg-[var(--bg-elevated)] px-3 py-2"><Skeleton className="h-5 w-5" /><Skeleton className="h-4 flex-1" /><Skeleton className="h-5 w-16 rounded-full" /></div>))}</div>
             </div>
           ))}
         </div>
@@ -63,14 +68,12 @@ export default function PipelinesPage() {
         <div className={`space-y-4 transition-all duration-500 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
           {pipelines.map((pipeline) => (
             <a key={pipeline.id} href={`/pipelines/${pipeline.id}`}
-              className="group block rounded-xl border transition-all duration-200 hover:border-[var(--border-active)] hover:shadow-[0_0_20px_rgba(255,77,77,0.04)]"
-              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-elevated)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-surface)"; }}>
-              <div className="border-b px-5 py-4" style={{ borderColor: "var(--border-default)" }}>
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">{pipeline.name}</h3>
+              className="group block rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] transition-all duration-200 hover:border-[var(--border-active)] hover:bg-[var(--bg-elevated)] hover:shadow-[0_0_24px_rgba(255,77,77,0.04)]"
+            >
+              <div className="border-b border-[var(--border-default)] px-5 py-4">
+                <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">{pipeline.name}</h3>
                 <div className="mt-1 flex items-center gap-2">
-                  <Badge size="sm">{pipeline.asset_type.name}</Badge>
+                  <Badge size="sm" variant="muted">{pipeline.asset_type.name}</Badge>
                   {pipeline.is_default && <Badge variant="accent" size="sm">Default</Badge>}
                   <span className="text-xs text-[var(--text-muted)]">{pipeline.steps.length} step{pipeline.steps.length !== 1 ? "s" : ""}</span>
                 </div>
@@ -81,7 +84,7 @@ export default function PipelinesPage() {
                 ) : (
                   <div className="space-y-1">
                     {pipeline.steps.map((step, i) => (
-                      <div key={step.id} className="flex items-center gap-3 rounded-lg px-3 py-2" style={{ backgroundColor: "var(--bg-elevated)" }}>
+                      <div key={step.id} className="flex items-center gap-3 rounded-lg bg-[var(--bg-elevated)] px-3 py-2">
                         <span className="text-sm text-[var(--text-muted)]">{i + 1}.</span>
                         <span className="text-base text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[step.processor] ?? Workflow; return <I size={18} />; })()}</span>
                         <span className="flex-1 text-sm text-[var(--text-primary)]">{PROCESSOR_LABELS[step.processor] ?? step.processor}</span>
@@ -107,7 +110,7 @@ function CreatePipelineModal({ assetTypes, onClose, onCreated }: { assetTypes: A
   const [isDefault, setIsDefault] = useState(false); const [submitting, setSubmitting] = useState(false); const [error, setError] = useState<string | null>(null);
   const handleCreate = async () => {
     if (!name.trim() || !assetTypeSlug) return; setSubmitting(true); setError(null);
-    try { const res = await fetch("/api/pipelines", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: name.trim(), asset_type_slug: assetTypeSlug, is_default: isDefault }) }); if (!res.ok) { const data = await res.json(); throw new Error(data.error ?? `HTTP ${res.status}`); } showToast("success", `Pipeline \"${name.trim()}\" created`); onCreated(); }
+    try { const res = await fetch("/api/pipelines", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: name.trim(), asset_type_slug: assetTypeSlug, is_default: isDefault }) }); if (!res.ok) { const data = await res.json(); throw new Error(data.error ?? `HTTP ${res.status}`); } showToast("success", `Pipeline "${name.trim()}" created`); onCreated(); }
     catch (err) { setError(String(err)); } finally { setSubmitting(false); }
   };
   return (
@@ -117,7 +120,7 @@ function CreatePipelineModal({ assetTypes, onClose, onCreated }: { assetTypes: A
       <div className="space-y-4">
         <Input label="Name" placeholder="Default Processing" value={name} onChange={setName} />
         <Select label="Asset Type" value={assetTypeSlug} onChange={setAssetTypeSlug} placeholder="Select type..." options={assetTypes.map((t) => ({ value: t.slug, label: t.name }))} />
-        <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="h-4 w-4 rounded border-[var(--border-default)] accent-[var(--accent)]" /><span className="text-sm text-[var(--text-secondary)]">Set as default pipeline for this asset type</span></label>
+        <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="h-4 w-4 rounded border-[var(--border-default)] bg-[var(--bg-input)] accent-[var(--accent)]" /><span className="text-sm text-[var(--text-secondary)]">Set as default pipeline for this asset type</span></label>
       </div>
     </Modal>
   );

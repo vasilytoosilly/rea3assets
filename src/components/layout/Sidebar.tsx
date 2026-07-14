@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  Hexagon,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -79,7 +80,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={onToggle}
           aria-hidden="true"
         />
@@ -87,21 +88,26 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col transition-all duration-200 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r transition-all duration-200 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:static lg:z-auto`}
-        style={{ backgroundColor: "var(--bg-surface)", borderRight: "1px solid var(--border-default)" }}
+        style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-default)" }}
         aria-label="Main navigation"
       >
         {/* Logo / Brand */}
         <div className="flex h-14 items-center border-b px-4" style={{ borderColor: "var(--border-default)" }}>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-lg font-bold tracking-tight" style={{ color: "var(--accent)" }}>
-              REA3
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--accent-border)] bg-[var(--accent-muted)] text-[var(--accent)]">
+              <Hexagon size={18} />
             </span>
-            <span className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
-              Assets
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-base font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+                REA3
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                Assets
+              </span>
+            </div>
           </Link>
         </div>
 
@@ -176,21 +182,11 @@ function SidebarItem({ item, isActive, pathname }: SidebarItemProps) {
       <li>
         <Link
           href={item.href}
-          className={`relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150 ${
+          className={`relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 ${
             isActive
-              ? "text-white"
-              : "hover:text-white"
+              ? "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+              : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
           }`}
-          style={{
-            backgroundColor: isActive ? "var(--bg-elevated)" : "transparent",
-            color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
-          }}
-          onMouseEnter={(e) => {
-            if (!isActive) e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-          }}
-          onMouseLeave={(e) => {
-            if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
-          }}
         >
           {isActive && (
             <span
@@ -211,13 +207,9 @@ function SidebarItem({ item, isActive, pathname }: SidebarItemProps) {
     <li>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-          isActive ? "text-white" : "hover:text-white"
+        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+          isActive ? "bg-[var(--bg-elevated)] text-[var(--text-primary)]" : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
         }`}
-        style={{
-          backgroundColor: isActive ? "var(--bg-elevated)" : "transparent",
-          color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
-        }}
         aria-expanded={isExpanded}
       >
         <span className="flex items-center gap-3">
@@ -240,29 +232,11 @@ function SidebarItem({ item, isActive, pathname }: SidebarItemProps) {
             <li key={child.href}>
               <Link
                 href={child.href}
-                className={`block rounded-md px-3 py-1.5 text-sm transition-colors ${
+                className={`block rounded-lg px-3 py-1.5 text-sm transition-colors ${
                   pathname === child.href || pathname.startsWith(child.href)
-                    ? "text-white"
-                    : "hover:text-white"
+                    ? "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                    : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                 }`}
-                style={{
-                  backgroundColor:
-                    pathname === child.href || pathname.startsWith(child.href)
-                      ? "var(--bg-elevated)"
-                      : "transparent",
-                  color:
-                    pathname === child.href || pathname.startsWith(child.href)
-                      ? "var(--text-primary)"
-                      : "var(--text-muted)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!(pathname === child.href || pathname.startsWith(child.href)))
-                    e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!(pathname === child.href || pathname.startsWith(child.href)))
-                    e.currentTarget.style.backgroundColor = "transparent";
-                }}
               >
                 {child.label}
               </Link>

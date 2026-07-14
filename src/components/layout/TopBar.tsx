@@ -47,7 +47,6 @@ export function TopBar({ onSidebarToggle }: TopBarProps) {
   // Build breadcrumb from pathname — skip segments that look like IDs
   const segments = pathname.split("/").filter(Boolean);
   const breadcrumbs = segments.map((seg, i, arr) => {
-    // Skip segments that look like IDs (UUIDs, long alphanumeric, or containing many hyphens with mixed case)
     const looksLikeId = /^[a-f0-9-]{20,}$/i.test(seg) || /^[a-zA-Z0-9]{15,}$/.test(seg);
     if (looksLikeId && i > 0) return null;
     return {
@@ -59,16 +58,16 @@ export function TopBar({ onSidebarToggle }: TopBarProps) {
 
   return (
     <header
-      className="sticky top-0 z-20 flex h-14 items-center border-b px-4"
+      className="sticky top-0 z-20 flex h-14 items-center border-b px-4 backdrop-blur-sm"
       style={{
-        backgroundColor: "var(--bg-surface)",
+        backgroundColor: "rgba(15,15,15,0.85)",
         borderColor: "var(--border-default)",
       }}
     >
       {/* Left: hamburger toggle */}
       <button
         onClick={onSidebarToggle}
-        className="mr-4 rounded-md p-1.5 transition-colors lg:hidden"
+        className="mr-4 rounded-lg p-1.5 transition-colors lg:hidden"
         style={{ color: "var(--text-muted)" }}
         onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
@@ -109,20 +108,9 @@ export function TopBar({ onSidebarToggle }: TopBarProps) {
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={handleSearch}
             placeholder="Search assets, types, tags... (press / to focus)"
-            className="block w-full rounded-lg border py-2 pl-10 text-sm transition-all duration-150 focus:outline-none focus:ring-1"
+            className="block w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-input)] py-2 pl-10 text-sm text-[var(--text-primary)] transition-all duration-150 placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
             style={{
-              backgroundColor: "var(--bg-elevated)",
-              borderColor: "var(--border-default)",
-              color: "var(--text-primary)",
               paddingRight: searchValue ? "2.5rem" : "1rem",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--accent)";
-              e.currentTarget.style.boxShadow = "0 0 0 1px var(--accent)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "var(--border-default)";
-              e.currentTarget.style.boxShadow = "none";
             }}
             aria-label="Global search"
           />
@@ -143,8 +131,8 @@ export function TopBar({ onSidebarToggle }: TopBarProps) {
           {!searchValue && (
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
               <kbd
-                className="hidden rounded border px-1.5 py-0.5 text-xs font-medium sm:inline-block"
-                style={{ borderColor: "var(--border-default)", color: "var(--text-muted)" }}
+                className="hidden rounded border border-[var(--border-default)] bg-[var(--bg-elevated)] px-1.5 py-0.5 text-xs font-medium sm:inline-block"
+                style={{ color: "var(--text-muted)" }}
               >
                 /
               </kbd>
@@ -156,11 +144,9 @@ export function TopBar({ onSidebarToggle }: TopBarProps) {
       {/* Right: environment badge */}
       <div className="ml-4 flex items-center gap-3">
         <span
-          className="rounded-full px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider"
+          className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-muted)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
           style={{
-            backgroundColor: "var(--accent-muted)",
             color: "var(--accent)",
-            border: "1px solid var(--accent)",
           }}
         >
           {process.env.NODE_ENV === "production" ? "PROD" : "DEV"}

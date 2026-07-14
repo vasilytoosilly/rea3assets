@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Badge, ErrorBanner, Skeleton, PROCESSOR_ICONS as PROCESSOR_ICON_MAP } from "@/components/ui";
+import { PageHeader, Button, Badge, Card, CardBody, CardHeader, ErrorBanner, Skeleton, PROCESSOR_ICONS as PROCESSOR_ICON_MAP } from "@/components/ui";
 import { Workflow } from "lucide-react";
 
 interface StepResult {
@@ -75,25 +75,15 @@ export default function PipelineRunPage() {
   if (loading) {
     return <div className="space-y-6">
       <Skeleton className="h-4 w-48" />
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-40" />
-        <div className="flex gap-2"><Skeleton className="h-5 w-32 rounded-full" /><Skeleton className="h-5 w-20 rounded-full" /><Skeleton className="h-5 w-24 rounded-full" /></div>
-      </div>
+      <Skeleton className="h-8 w-40" />
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[1,2,3,4].map((i) => (
-          <div key={i} className="rounded-md border border-[var(--border-default)] p-3">
-            <Skeleton className="h-3 w-16" /><Skeleton className="mt-1 h-5 w-24" />
-          </div>
+          <Card key={i} className="border-[var(--border-default)]"><CardBody className="space-y-2"><Skeleton className="h-3 w-16" /><Skeleton className="h-5 w-24" /></CardBody></Card>
         ))}
       </div>
       <div className="space-y-2">
         {[1,2].map((i) => (
-          <div key={i} className="rounded-md border border-[var(--border-default)] p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3"><Skeleton className="h-5 w-5" /><div className="space-y-1"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-20" /></div></div>
-              <Skeleton className="h-5 w-20 rounded-full" />
-            </div>
-          </div>
+          <Card key={i} className="border-[var(--border-default)]"><CardBody className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-20" /></CardBody></Card>
         ))}
       </div>
     </div>;
@@ -115,6 +105,11 @@ export default function PipelineRunPage() {
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        title="Pipeline Run"
+        subtitle={`Run ${runId.slice(0, 8)} for ${run.pipeline.name}`}
+      />
+
       <nav className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
         <a href="/pipelines" className="hover:text-[var(--text-primary)]">Pipelines</a>
         <span>/</span>
@@ -123,71 +118,68 @@ export default function PipelineRunPage() {
         <span className="text-[var(--text-primary)]">Run {runId.slice(0, 8)}</span>
       </nav>
 
-      <div>
-        <h1 className="text-2xl font-bold uppercase tracking-wider text-[var(--text-primary)]">
-          Pipeline Run
-        </h1>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <a href={`/assets/${run.asset_version.asset.id}`} className="text-sm text-[var(--text-primary)] hover:underline">
-            {run.asset_version.asset.name}
-          </a>
-          <span className="text-sm text-[var(--text-muted)]">v{run.asset_version.version}</span>
-          {run.asset_version.format && <Badge size="sm" variant="muted">{run.asset_version.format}</Badge>}
-          <Badge size="sm" variant={
-            run.status === "completed" ? "success" : run.status === "failed" ? "error" : run.status === "running" ? "warning" : "muted"
-          }>{run.status}</Badge>
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <a href={`/assets/${run.asset_version.asset.id}`} className="text-sm text-[var(--text-primary)] hover:underline">
+          {run.asset_version.asset.name}
+        </a>
+        <span className="text-sm text-[var(--text-muted)]">v{run.asset_version.version}</span>
+        {run.asset_version.format && <Badge size="sm" variant="muted">{run.asset_version.format}</Badge>}
+        <Badge size="sm" variant={
+          run.status === "completed" ? "success" : run.status === "failed" ? "error" : run.status === "running" ? "warning" : "muted"
+        }>{run.status}</Badge>
       </div>
 
       {run.error_message && <ErrorBanner message={run.error_message} />}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="Status" value={run.status} />
-        <Stat label="Created" value={new Date(run.created_at).toLocaleString()} />
-        <Stat label="Started" value={run.started_at ? new Date(run.started_at).toLocaleString() : "—"} />
-        <Stat label="Completed" value={run.completed_at ? new Date(run.completed_at).toLocaleString() : "—"} />
+        <StatCard label="Status" value={run.status} />
+        <StatCard label="Created" value={new Date(run.created_at).toLocaleString()} />
+        <StatCard label="Started" value={run.started_at ? new Date(run.started_at).toLocaleString() : "—"} />
+        <StatCard label="Completed" value={run.completed_at ? new Date(run.completed_at).toLocaleString() : "—"} />
       </div>
 
-      <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">
-          Steps ({sortedSteps.length})
-        </h3>
-        <div className="space-y-2">
-          {sortedSteps.map((step) => {
-            return (
-              <div key={step.id} className="rounded-md border p-3" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[step.processor] ?? Workflow; return <I size={18} />; })()}</span>
-                    <div>
-                      <p className="text-sm font-medium text-[var(--text-primary)]">{PROCESSOR_LABELS[step.processor] ?? step.processor}</p>
-                      <code className="text-[10px] text-[var(--text-muted)]">{step.processor}</code>
-                    </div>
+      <Card className="border-[var(--border-default)]">
+        <CardHeader>
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
+            Steps ({sortedSteps.length})
+          </h3>
+        </CardHeader>
+        <CardBody className="space-y-2">
+          {sortedSteps.map((step) => (
+            <div key={step.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] p-4 transition-colors hover:border-[var(--border-active)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg text-[var(--accent)]">{(() => { const I = PROCESSOR_ICON_MAP[step.processor] ?? Workflow; return <I size={18} />; })()}</span>
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{PROCESSOR_LABELS[step.processor] ?? step.processor}</p>
+                    <code className="text-[10px] text-[var(--text-muted)]">{step.processor}</code>
                   </div>
-                  <Badge size="sm" variant={
-                    step.status === "completed" ? "success" : step.status === "failed" ? "error" : step.status === "running" ? "warning" : "muted"
-                  }>{step.status}</Badge>
                 </div>
-                {step.error_message && <p className="mt-2 text-xs" style={{ color: "var(--status-deprecated)" }}>{step.error_message}</p>}
-                <div className="mt-2 flex gap-4 text-xs text-[var(--text-muted)]">
-                  {step.started_at && <span>Started: {new Date(step.started_at).toLocaleString()}</span>}
-                  {step.completed_at && <span>Done: {new Date(step.completed_at).toLocaleString()}</span>}
-                </div>
-                {step.output != null && <pre className="mt-2 rounded bg-[var(--bg-surface)] p-2 text-xs text-[var(--text-secondary)] overflow-auto">{JSON.stringify(step.output, null, 2)}</pre>}
+                <Badge size="sm" variant={
+                  step.status === "completed" ? "success" : step.status === "failed" ? "error" : step.status === "running" ? "warning" : "muted"
+                }>{step.status}</Badge>
               </div>
-            );
-          })}
-        </div>
-      </div>
+              {step.error_message && <p className="mt-2 text-xs text-red-500">{step.error_message}</p>}
+              <div className="mt-2 flex gap-4 text-xs text-[var(--text-muted)]">
+                {step.started_at && <span>Started: {new Date(step.started_at).toLocaleString()}</span>}
+                {step.completed_at && <span>Done: {new Date(step.completed_at).toLocaleString()}</span>}
+              </div>
+              {step.output != null && <pre className="mt-2 overflow-auto rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-base)] p-3 text-xs text-[var(--text-secondary)]">{JSON.stringify(step.output, null, 2)}</pre>}
+            </div>
+          ))}
+        </CardBody>
+      </Card>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border p-3" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">{label}</p>
-      <p className="mt-1 text-sm text-[var(--text-primary)]">{value}</p>
-    </div>
+    <Card className="border-[var(--border-default)]">
+      <CardBody>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">{label}</p>
+        <p className="mt-1 text-sm text-[var(--text-primary)]">{value}</p>
+      </CardBody>
+    </Card>
   );
 }

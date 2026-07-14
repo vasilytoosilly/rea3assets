@@ -97,8 +97,7 @@ export default function AssetDetailPage() {
 
   if (error || !asset) {
     return (
-      <div className="rounded-xl border border-dashed px-8 py-20 text-center"
-        style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+      <div className="rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-20 text-center">
         <ErrorBanner message={error || "Asset not found"} onRetry={fetchAsset} />
         <Button variant="ghost" size="sm" onClick={() => router.push("/assets")} className="mt-3">Back to list</Button>
       </div>
@@ -112,7 +111,7 @@ export default function AssetDetailPage() {
       {statusError && <ErrorBanner message={statusError} onDismiss={() => setStatusError(null)} />}
 
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
+      <nav className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
         <a href="/assets" className="transition-colors hover:text-[var(--accent)]">Assets</a>
         <span className="opacity-40">/</span>
         <span className="text-[var(--text-primary)]">{asset.name}</span>
@@ -120,34 +119,31 @@ export default function AssetDetailPage() {
 
       {/* Hero header */}
       <div
-        className={`relative overflow-hidden rounded-2xl border px-6 py-6 sm:px-8 transition-all duration-700 ${
+        className={`relative overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-6 py-6 sm:px-8 transition-all duration-700 ${
           mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
         }`}
-        style={{
-          backgroundColor: "var(--bg-surface)", borderColor: "var(--border-default)",
-          boxShadow: "0 0 60px rgba(255,77,77,0.03), inset 0 1px 0 rgba(255,255,255,0.02)",
-        }}
+        style={{ boxShadow: "0 0 60px rgba(255,77,77,0.03), inset 0 1px 0 rgba(255,255,255,0.02)" }}
       >
         <div className="pointer-events-none absolute inset-0"
           style={{ background: "radial-gradient(ellipse 40% 80% at 80% 20%, rgba(255,77,77,0.04) 0%, transparent 60%)" }} />
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-3xl text-[var(--accent)]" aria-hidden="true">
-                <DynamicIcon name={asset.asset_type.icon} size={28} />
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--accent)]" aria-hidden="true">
+                <DynamicIcon name={asset.asset_type.icon} size={24} />
               </span>
               <div>
-                <h1 className="text-2xl font-black uppercase tracking-wider" style={{ color: "var(--text-primary)", textShadow: "0 0 40px rgba(255,77,77,0.08)" }}>
+                <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
                   {asset.name}
                 </h1>
               </div>
             </div>
-            {asset.description && <p className="text-sm" style={{ color: "var(--text-muted)" }}>{asset.description}</p>}
+            {asset.description && <p className="text-sm text-[var(--text-muted)]">{asset.description}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <Badge variant="accent">{asset.asset_type.name}</Badge>
               <StatusBadge status={asset.status} />
               <Badge variant="muted">{asset.slug}</Badge>
-              <span className="text-xs" style={{ color: "var(--text-muted)" }}>{asset.versions.length} {asset.versions.length === 1 ? "version" : "versions"}</span>
+              <span className="text-xs text-[var(--text-muted)]">{asset.versions.length} {asset.versions.length === 1 ? "version" : "versions"}</span>
             </div>
           </div>
           {transitions.length > 0 && (
@@ -165,7 +161,7 @@ export default function AssetDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b" style={{ borderColor: "var(--border-default)" }}>
+      <div className="flex gap-1 border-b border-[var(--border-default)]">
         <TabButton active={activeTab === "metadata"} onClick={() => setActiveTab("metadata")} label="Metadata" />
         <TabButton active={activeTab === "versions"} onClick={() => setActiveTab("versions")} label="Versions" count={asset.versions.length} />
         <TabButton active={activeTab === "tags"} onClick={() => setActiveTab("tags")} label="Tags" count={asset.tags.length} />
@@ -199,11 +195,11 @@ function statusTransitions(status: string): string[] {
 function TabButton({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count?: number }) {
   return (
     <button onClick={onClick}
-      className={`relative px-4 py-3 text-sm font-medium uppercase tracking-wider transition-colors ${
+      className={`relative px-4 py-3 text-sm font-medium tracking-tight transition-colors ${
         active ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
       }`}>
       {label}{count !== undefined && <span className="ml-2 text-xs text-[var(--text-muted)]">{count}</span>}
-      {active && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: "var(--accent)" }} />}
+      {active && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent)]" />}
     </button>
   );
 }
@@ -211,8 +207,8 @@ function TabButton({ active, onClick, label, count }: { active: boolean; onClick
 function MetadataTab({ asset }: { asset: AssetDetail }) {
   const sortedFields = [...asset.asset_type.fields].sort((a, b) => a.sort_order - b.sort_order);
   if (sortedFields.length === 0) return (
-    <div className="rounded-xl border border-dashed px-8 py-12 text-center" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
-      <p className="text-sm" style={{ color: "var(--text-muted)" }}>No custom fields defined for {asset.asset_type.name}. Configure fields in the asset type settings.</p>
+    <div className="rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-12 text-center">
+      <p className="text-sm text-[var(--text-muted)]">No custom fields defined for {asset.asset_type.name}. Configure fields in the asset type settings.</p>
     </div>
   );
   return (
@@ -227,14 +223,13 @@ function MetadataTab({ asset }: { asset: AssetDetail }) {
 
 function MetadataFieldCard({ field, value }: { field: FieldDef; value: unknown }) {
   return (
-    <div className="rounded-xl border p-4 transition-colors hover:border-[var(--border-active)]"
-      style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+    <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4 transition-colors hover:border-[var(--border-active)]">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
             {field.label}{field.is_required && <span className="ml-1 text-[var(--accent)]">*</span>}
           </p>
-          <div className="mt-1 text-sm">{renderFieldValue(field.field_type, value)}</div>
+          <div className="mt-1 text-sm text-[var(--text-primary)]">{renderFieldValue(field.field_type, value)}</div>
         </div>
         <div className="flex items-center gap-1">
           {field.is_filterable && <Badge variant="success" size="sm">F</Badge>}
@@ -288,13 +283,13 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
         <Button size="sm" onClick={() => setShowUploadForm(!showUploadForm)}>{showUploadForm ? "Cancel" : "+ New Version"}</Button>
       </div>
       {showUploadForm && (
-        <div className="rounded-xl border p-4 space-y-4" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
-          <h4 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">Upload New Version</h4>
+        <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4 space-y-4">
+          <h4 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">Upload New Version</h4>
           {uploadError && <ErrorBanner message={uploadError} onDismiss={() => setUploadError(null)} />}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="Version (semver)" placeholder="1.0.0" value={version} onChange={setVersion} />
             <div>
-              <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">File</label>
+              <label className="label mb-1.5 block">File</label>
               <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleUpload(file); e.target.value = ""; }} />
               <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>{uploading ? "Uploading..." : "Choose File"}</Button>
               <p className="mt-1 text-[10px] text-[var(--text-muted)]">Max 50MB. Supported: .rbxm, .rbxmx, .fbx, .blend, .glb, .zip</p>
@@ -304,8 +299,8 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
         </div>
       )}
       {versions.length === 0 && !showUploadForm ? (
-        <div className="rounded-xl border border-dashed px-8 py-12 text-center" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>No versions uploaded yet.</p>
+        <div className="rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-12 text-center">
+          <p className="text-sm text-[var(--text-muted)]">No versions uploaded yet.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -336,7 +331,7 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
                 <div className="mt-2 flex items-center gap-4 text-xs text-[var(--text-muted)]">
                   {v.file_size && <span>Size: {formatBytes(Number(v.file_size))}</span>}
                   {v.file_hash && <span className="font-mono">SHA: {v.file_hash.slice(0, 12)}...</span>}
-                  {v.file_path && <a href={v.file_path} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--accent)" }}>Download</a>}
+                  {v.file_path && <a href={v.file_path} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] hover:text-[var(--accent-hover)] underline">Download</a>}
                 </div>
               </div>
             );
@@ -372,16 +367,16 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
     <div className="space-y-6">
       {saveError && <ErrorBanner message={saveError} onDismiss={() => setSaveError(null)} />}
       <Card className="border-[var(--border-default)]">
-        <CardHeader><h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">General</h3></CardHeader>
+        <CardHeader><h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">General</h3></CardHeader>
         <CardBody className="space-y-4">
           <Input label="Name" value={name} onChange={setName} />
           <Input label="Description" value={description} onChange={setDescription} />
           <Input label="SKU" placeholder="e.g. VP-CHAR-001 (matches ERP ProductSKU)" value={sku} onChange={setSku} helpText="The ERP product code. Required to publish and sync to the ERP." />
-          <div><label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Slug</label><p className="text-sm font-mono text-[var(--text-muted)]">{asset.slug}</p></div>
-          <div><label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Division</label><p className="text-sm text-[var(--text-muted)]">{asset.division.replace(/_/g, " ")}</p></div>
-          <div><label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Status</label><StatusBadge status={asset.status} /></div>
+          <div><label className="label mb-1.5 block">Slug</label><p className="text-sm font-mono text-[var(--text-muted)]">{asset.slug}</p></div>
+          <div><label className="label mb-1.5 block">Division</label><p className="text-sm text-[var(--text-muted)]">{asset.division.replace(/_/g, " ")}</p></div>
+          <div><label className="label mb-1.5 block">Status</label><StatusBadge status={asset.status} /></div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Featured</label>
+            <label className="label mb-1.5 block">Featured</label>
             <button type="button" onClick={() => setFeatured(!featured)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${featured ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]" : "border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"}`}>
               <Star className={`h-3 w-3 ${featured ? "fill-current" : ""}`} />{featured ? "Featured" : "Not featured"}
@@ -390,14 +385,14 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
         </CardBody>
       </Card>
       <div className="flex justify-end"><Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button></div>
-      <Card className="border-[var(--status-deprecated)]">
-        <CardHeader><h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--status-deprecated)]">Danger Zone</h3></CardHeader>
+      <Card className="border-[var(--status-deprecated)]/30">
+        <CardHeader><h3 className="text-sm font-semibold tracking-tight text-[var(--status-deprecated)]">Danger Zone</h3></CardHeader>
         <CardBody className="space-y-4">
           {deleteError && <ErrorBanner message={deleteError} onDismiss={() => setDeleteError(null)} />}
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>Deleting an asset permanently removes it, all its versions, thumbnails, tags, and dependencies. This action cannot be undone.</p>
+          <p className="text-sm text-[var(--text-muted)]">Deleting an asset permanently removes it, all its versions, thumbnails, tags, and dependencies. This action cannot be undone.</p>
           {confirmDelete ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm" style={{ color: "var(--status-deprecated)" }}>Are you sure?</span>
+              <span className="text-sm text-[var(--status-deprecated)]">Are you sure?</span>
               <Button variant="danger" size="sm" disabled={deleting} onClick={async () => { setDeleting(true); setDeleteError(null); try { const res = await fetch("/api/assets/" + asset.id, { method: "DELETE" }); if (!res.ok) { const data = await res.json().catch(() => null); throw new Error(data?.error ?? "HTTP " + res.status); } router.push("/assets"); } catch (err) { setDeleteError(String(err)); } finally { setDeleting(false); } }}>{deleting ? "Deleting..." : "Yes, Delete Permanently"}</Button>
               <Button variant="secondary" size="sm" onClick={() => setConfirmDelete(false)}>Cancel</Button>
             </div>
@@ -428,18 +423,18 @@ function TagsTab({ assetId, initialTags }: { assetId: string; initialTags: Array
     catch (err) { showToast("error", String(err)); } finally { setSaving(false); }
   };
 
-  if (!loaded) return <div className="rounded-xl border border-dashed px-8 py-16 text-center" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}><p className="text-sm" style={{ color: "var(--text-muted)" }}>Loading tags...</p></div>;
-  if (groups.length === 0) return <div className="rounded-xl border border-dashed px-8 py-12 text-center" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}><p className="text-sm" style={{ color: "var(--text-muted)" }}>No tag groups configured. <a href="/tags" className="underline" style={{ color: "var(--accent)" }}>Create tag groups</a> to classify this asset.</p></div>;
+  if (!loaded) return <div className="rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-16 text-center"><p className="text-sm text-[var(--text-muted)]">Loading tags...</p></div>;
+  if (groups.length === 0) return <div className="rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-12 text-center"><p className="text-sm text-[var(--text-muted)]">No tag groups configured. <a href="/tags" className="text-[var(--accent)] hover:text-[var(--accent-hover)] underline">Create tag groups</a> to classify this asset.</p></div>;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>Assign tags from the configured tag groups.</p>
+        <p className="text-sm text-[var(--text-muted)]">Assign tags from the configured tag groups.</p>
         <Button size="sm" onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Tags"}</Button>
       </div>
       {groups.map((group) => (
         <div key={group.id}>
-          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>{group.name}</h4>
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">{group.name}</h4>
           <div className="flex flex-wrap gap-2">
             {group.tags.map((tag) => {
               const active = assignedIds.has(tag.id);
@@ -478,12 +473,12 @@ function ThumbnailsTab({ assetId, thumbnails, onRefresh }: { assetId: string; th
         <div><input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ""; }} /><Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>{uploading ? "Uploading..." : "+ Add Thumbnail"}</Button></div>
       </div>
       {thumbnails.length === 0 ? (
-        <div className="rounded-xl border border-dashed px-8 py-12 text-center" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}><p className="text-sm text-[var(--text-muted)]">Upload images to showcase this asset.</p></div>
+        <div className="rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-12 text-center"><p className="text-sm text-[var(--text-muted)]">Upload images to showcase this asset.</p></div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {thumbnails.map((t) => (
-            <div key={t.id} className="group relative rounded-xl border overflow-hidden" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
-              <img src={t.url} alt={t.purpose} className="w-full aspect-square object-cover" />
+            <div key={t.id} className="group relative overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)]">
+              <img src={t.url} alt={t.purpose} className="aspect-square w-full object-cover" />
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Badge size="sm">{t.purpose}</Badge>
                 <Button size="sm" variant="danger" onClick={async () => { setDeleting(t.id); try { await fetch(`/api/assets/${assetId}/thumbnails/${t.id}`, { method: "DELETE" }); if (mountedRef.current) onRefresh(); } catch (err) { showToast("error", String(err)); } finally { if (mountedRef.current) setDeleting(null); } }} disabled={deleting === t.id}>{deleting === t.id ? "..." : <XIcon size={14} />}</Button>
@@ -524,16 +519,16 @@ function DependenciesTab({ assetId, onRefresh }: { assetId: string; onRefresh: (
         <Button size="sm" disabled={!selectedDep || adding} onClick={async () => { setAdding(true); try { const res = await fetch(`/api/assets/${assetId}/dependencies`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dependency_id: selectedDep, dependency_type: depType }) }); if (!res.ok) throw new Error((await res.json()).error ?? "Failed"); setSelectedDep(""); fetchDeps(); onRefresh(); } catch (err) { showToast("error", String(err)); } finally { setAdding(false); } }}>{adding ? "..." : "Add"}</Button>
       </div>
       {deps.length === 0 ? (
-        <div className="rounded-xl border border-dashed px-8 py-12 text-center" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}><p className="text-sm text-[var(--text-muted)]">No dependencies.</p></div>
+        <div className="rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-12 text-center"><p className="text-sm text-[var(--text-muted)]">No dependencies.</p></div>
       ) : (
         <div className="space-y-1">
           {deps.map((d) => (
-            <div key={d.id} className="flex items-center justify-between rounded-lg px-3 py-2" style={{ backgroundColor: "var(--bg-elevated)" }}>
+            <div key={d.id} className="flex items-center justify-between rounded-lg bg-[var(--bg-elevated)] px-3 py-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-[var(--text-primary)]">{d.dependency.name}</span>
                 <Badge size="sm" variant={d.dependency_type === "requires" ? "error" : d.dependency_type === "recommends" ? "warning" : "accent"}>{d.dependency_type.replace(/_/g, " ")}</Badge>
               </div>
-              <button onClick={async () => { try { await fetch(`/api/assets/${assetId}/dependencies/${d.id}`, { method: "DELETE" }); fetchDeps(); onRefresh(); } catch (err) { showToast("error", String(err)); } }} className="text-[var(--text-muted)] hover:text-[var(--accent)] text-sm">✕</button>
+              <button onClick={async () => { try { await fetch(`/api/assets/${assetId}/dependencies/${d.id}`, { method: "DELETE" }); fetchDeps(); onRefresh(); } catch (err) { showToast("error", String(err)); } }} className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)]">✕</button>
             </div>
           ))}
         </div>

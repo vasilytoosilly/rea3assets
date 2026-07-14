@@ -52,10 +52,17 @@ export function ToastContainer() {
   };
 
   const borders: Record<ToastType, string> = {
-    success: "border-[var(--status-approved)]",
-    error: "border-[var(--status-deprecated)]",
-    warning: "border-[var(--status-review)]",
-    info: "border-[var(--accent)]",
+    success: "border-[var(--status-approved)]/30",
+    error: "border-[var(--status-deprecated)]/30",
+    warning: "border-[var(--status-review)]/30",
+    info: "border-[var(--accent-border)]",
+  };
+
+  const backgrounds: Record<ToastType, string> = {
+    success: "bg-[var(--status-approved)]/10",
+    error: "bg-[var(--status-deprecated)]/10",
+    warning: "bg-[var(--status-review)]/10",
+    info: "bg-[var(--accent-muted)]",
   };
 
   return (
@@ -68,7 +75,7 @@ export function ToastContainer() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`flex items-start gap-3 rounded-md border ${borders[toast.type]} bg-[var(--bg-surface)] px-4 py-3 shadow-lg animate-[slideIn_0.2s_ease-out]`}
+          className={`flex items-start gap-3 rounded-lg border ${borders[toast.type]} ${backgrounds[toast.type]} px-4 py-3 shadow-lg animate-[slideIn_0.2s_ease-out]`}
           style={{ minWidth: "280px", maxWidth: "400px" }}
         >
           {icons[toast.type]}

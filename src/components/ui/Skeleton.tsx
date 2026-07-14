@@ -7,7 +7,7 @@
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-[var(--bg-hover)] ${className}`}
+      className={`animate-pulse rounded-md bg-[var(--bg-elevated)] ${className}`}
       aria-hidden="true"
     />
   );
@@ -29,7 +29,7 @@ export function SkeletonText({ lines = 3, className = "" }: { lines?: number; cl
 export function SkeletonCard({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 ${className}`}
+      className={`rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 ${className}`}
       aria-hidden="true"
     >
       <div className="flex items-start gap-3">

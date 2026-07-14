@@ -18,7 +18,7 @@ import {
   FIELD_TYPE_ICONS as FIELD_ICON_MAP,
 } from "@/components/ui";
 import type { FieldConfig } from "@/lib/validations/fields";
-import { Package, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
+import { Package, Trash2, GripVertical, ChevronDown, ChevronUp, Database } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Asset Type detail page — fetch from API, manage fields
@@ -162,8 +162,7 @@ export default function AssetTypeDetailPage() {
 
   if (error || !type) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed px-8 py-16"
-        style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-16">
         <ErrorBanner message={error || "Asset type not found"} onRetry={fetchType} />
         <Button variant="ghost" size="sm" onClick={() => router.push("/asset-types")}>Back to list</Button>
       </div>
@@ -189,7 +188,7 @@ export default function AssetTypeDetailPage() {
             <DynamicIcon name={type.icon} size={36} />
           </span>
           <div>
-            <h1 className="text-2xl font-bold uppercase tracking-wider text-[var(--text-primary)]">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
               {type.name}
             </h1>
             {type.description && (
@@ -197,11 +196,11 @@ export default function AssetTypeDetailPage() {
                 {type.description}
               </p>
             )}
-            <div className="mt-2 flex items-center gap-3">
+            <div className="mt-2 flex flex-wrap items-center gap-2">
               <Badge variant="accent">{type.division.replace(/_/g, " ")}</Badge>
               {type.is_public && <Badge variant="success">Public</Badge>}
               {type.is_internal && <Badge variant="muted">Internal</Badge>}
-              <span className="text-xs" style={{ color: "var(--text-muted)" }}>{type.slug}</span>
+              <Badge variant="muted" size="sm">{type.slug}</Badge>
               <span className="text-xs" style={{ color: "var(--text-muted)" }}>
                 {type._count?.assets ?? 0} assets
               </span>
@@ -211,7 +210,7 @@ export default function AssetTypeDetailPage() {
         <div className="flex gap-2">
           {confirmDeleteType ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[var(--status-deprecated)]">Delete this type and all its fields?</span>
+              <span className="text-xs text-red-500">Delete this type and all its fields?</span>
               <Button variant="danger" size="sm" onClick={handleDeleteType}>Yes</Button>
               <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteType(false)}>No</Button>
             </div>
@@ -224,7 +223,7 @@ export default function AssetTypeDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b" style={{ borderColor: "var(--border-default)" }}>
+      <div className="flex gap-1 border-b border-[var(--border-default)]">
         <TabButton active={activeTab === "fields"} onClick={() => setActiveTab("fields")} label="Custom Fields" count={type.fields?.length ?? 0} />
         <TabButton active={activeTab === "settings"} onClick={() => setActiveTab("settings")} label="Settings" />
       </div>
@@ -258,13 +257,13 @@ function TabButton({ active, onClick, label, count }: { active: boolean; onClick
   return (
     <button
       onClick={onClick}
-      className={`relative px-4 py-3 text-sm font-medium uppercase tracking-wider transition-colors ${
+      className={`relative px-4 py-3 text-sm font-medium tracking-tight transition-colors ${
         active ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
       }`}
     >
       {label}
       {count !== undefined && <span className="ml-2 text-xs text-[var(--text-muted)]">{count}</span>}
-      {active && <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: "var(--accent)" }} />}
+      {active && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent)]" />}
     </button>
   );
 }
@@ -317,10 +316,15 @@ function FieldsTab({
       </div>
 
       {fields.length === 0 && (
-        <div className="rounded-lg border border-dashed px-8 py-12 text-center"
-          style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}>
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            No custom fields yet. Add fields to define what metadata this asset type carries.
+        <div className="rounded-2xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-16 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-muted)] text-[var(--accent)]">
+            <Database className="h-6 w-6" />
+          </div>
+          <p className="text-sm font-medium text-[var(--text-primary)]">
+            No custom fields yet
+          </p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
+            Add fields to define what metadata this asset type carries.
           </p>
         </div>
       )}
@@ -337,16 +341,16 @@ function FieldRow({ field, confirming, onDeleteClick, onCancelDelete }: { field:
 
   return (
     <Card className="border-[var(--border-default)]">
-      <CardBody className="py-3">
+      <CardBody className="py-4">
         <div className="flex items-center gap-4">
           <span className="cursor-grab text-[var(--text-muted)]" aria-hidden="true"><GripVertical size={16} /></span>
           <span className="text-lg text-[var(--accent)]" aria-hidden="true">{(() => { const I = FIELD_ICON_MAP[field.field_type] ?? Package; return <I size={20} />; })()}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-[var(--text-primary)]">{field.label}</span>
-              <code className="rounded px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]" style={{ backgroundColor: "var(--bg-elevated)" }}>{field.slug}</code>
+              <code className="rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">{field.slug}</code>
             </div>
-            <div className="mt-0.5 flex items-center gap-2">
+            <div className="mt-0.5 flex flex-wrap items-center gap-2">
               <Badge variant="default" size="sm">{FIELD_TYPE_LABELS[field.field_type] ?? field.field_type}</Badge>
               {field.is_required && <Badge variant="warning" size="sm">Required</Badge>}
               {field.is_filterable && <Badge variant="success" size="sm">Filterable</Badge>}
@@ -372,9 +376,9 @@ function FieldRow({ field, confirming, onDeleteClick, onCancelDelete }: { field:
           </div>
         </div>
         {expanded && field.config && (
-          <div className="mt-3 rounded-md border p-3" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--bg-elevated)" }}>
-            <h4 className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">Configuration</h4>
-            <pre className="mt-1 text-xs text-[var(--text-secondary)]">{JSON.stringify(field.config, null, 2)}</pre>
+          <div className="mt-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-3">
+            <h4 className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">Configuration</h4>
+            <pre className="mt-1 overflow-auto rounded-md bg-[var(--bg-base)] p-2 text-xs text-[var(--text-secondary)]">{JSON.stringify(field.config, null, 2)}</pre>
           </div>
         )}
       </CardBody>
@@ -449,7 +453,7 @@ function SettingsTab({ type }: { type: AssetType }) {
       )}
       <Card className="border-[var(--border-default)]">
         <CardHeader>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">General</h3>
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">General</h3>
         </CardHeader>
         <CardBody className="space-y-4">
           <Input label="Name" value={name} onChange={setName} />
@@ -472,7 +476,7 @@ function SettingsTab({ type }: { type: AssetType }) {
 
       <Card className="border-[var(--border-default)]">
         <CardHeader>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">Visibility</h3>
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">Visibility</h3>
         </CardHeader>
         <CardBody className="space-y-4">
           <Toggle label="Internal Library" description="Show this asset type in the studio's internal asset library." checked={isInternal} onChange={setIsInternal} />

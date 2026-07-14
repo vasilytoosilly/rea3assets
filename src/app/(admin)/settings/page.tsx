@@ -50,7 +50,7 @@ export default function SettingsPage() {
 
       <Card className="border-[var(--border-default)]">
         <CardHeader>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
             Application
           </h3>
         </CardHeader>
@@ -73,11 +73,11 @@ export default function SettingsPage() {
               ) : (
                 <span className="inline-flex items-center gap-1.5">
                   <span
-                    className="inline-block h-2 w-2 rounded-full"
-                    style={{
-                      backgroundColor:
-                        status?.database === "connected" ? "#22c55e" : "#ef4444",
-                    }}
+                    className={`inline-block h-2 w-2 rounded-full ${
+                      status?.database === "connected"
+                        ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
+                        : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                    }`}
                   />
                   {status?.database === "connected" ? "Connected" : "Disconnected"}
                 </span>
@@ -92,13 +92,13 @@ export default function SettingsPage() {
               </Badge>
             }
           />
-          <InfoRow label="Upload Dir" value={status?.upload_dir ?? "—"} />
+          <InfoRow label="Upload Dir" value={status?.upload_dir ?? "—"} mono />
         </CardBody>
       </Card>
 
       <Card className="border-[var(--border-default)]">
         <CardHeader>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
             Asset Manager
           </h3>
         </CardHeader>
@@ -125,11 +125,11 @@ export default function SettingsPage() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+function InfoRow({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
-    <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3 last:border-0 last:pb-0">
+    <div className="flex items-center justify-between border-b border-[var(--border-subtle)] py-3 first:pt-0 last:border-0 last:pb-0">
       <span className="text-sm font-medium text-[var(--text-secondary)]">{label}</span>
-      <span className="text-sm text-[var(--text-primary)]">{value}</span>
+      <span className={`text-sm text-[var(--text-primary)] ${mono ? "font-mono text-xs" : ""}`}>{value}</span>
     </div>
   );
 }

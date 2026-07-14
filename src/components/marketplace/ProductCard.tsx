@@ -27,21 +27,23 @@ export function ProductCard({ asset }: { asset: ProductCardAsset }) {
   return (
     <Link
       href={`/marketplace/${asset.slug}`}
-      className="group block rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] transition-colors hover:border-[var(--border-active)] hover:bg-[var(--bg-elevated)]"
+      className="group block overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] transition-all duration-200 hover:border-[var(--border-active)] hover:bg-[var(--bg-elevated)] hover:shadow-lg hover:shadow-black/20"
     >
       {/* Image area */}
-      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-[var(--bg-elevated)]">
+      <div className="relative aspect-square overflow-hidden bg-[var(--bg-elevated)]">
         {cover ? (
           <img
             src={cover.url}
             alt={asset.name}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center">
+          <div className="flex h-full w-full items-center justify-center bg-[var(--bg-elevated)]">
             <Package className="h-12 w-12 text-[var(--text-muted)]" />
           </div>
         )}
+        {/* Subtle inner border to prevent light thumbnails bleeding */}
+        <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/5" />
       </div>
 
       {/* Content */}
@@ -76,7 +78,7 @@ export function ProductCard({ asset }: { asset: ProductCardAsset }) {
             {asset.tags.slice(0, 3).map((t) => (
               <span
                 key={t.tag.id}
-                className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider border-[var(--border-default)] text-[var(--text-secondary)]"
+                className="inline-flex items-center gap-1 rounded-full border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--text-secondary)]"
               >
                 {t.tag.name}
               </span>

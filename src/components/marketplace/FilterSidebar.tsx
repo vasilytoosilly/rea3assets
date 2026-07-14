@@ -88,35 +88,27 @@ export function FilterSidebar({
       {/* Division chips */}
       {divisions.length > 0 && (
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Catalog
           </p>
           <div className="flex flex-wrap gap-2">
             {/* "All" chip */}
-            <button
+            <FilterChip
+              active={activeFilters.division === null}
               onClick={() => toggleDivision(null)}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                activeFilters.division === null
-                  ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
-                  : "border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-              }`}
             >
               All
-            </button>
+            </FilterChip>
             {divisions.map((div) => (
-              <button
+              <FilterChip
                 key={div.slug}
+                active={activeFilters.division === div.slug}
                 onClick={() => toggleDivision(div.slug)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  activeFilters.division === div.slug
-                    ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
-                    : "border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-                }`}
               >
                 <Layers className="h-3 w-3" />
                 {divisionLabel(div.slug)}
                 <span className="text-[10px] opacity-70">({div.count})</span>
-              </button>
+              </FilterChip>
             ))}
           </div>
         </div>
@@ -124,55 +116,40 @@ export function FilterSidebar({
 
       {/* Featured toggle */}
       <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
           Featured
         </p>
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={toggleFeatured}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-              activeFilters.featured
-                ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
-                : "border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-            }`}
-          >
+          <FilterChip active={activeFilters.featured} onClick={toggleFeatured}>
             <Star className={`h-3 w-3 ${activeFilters.featured ? "fill-current" : ""}`} />
             Featured
-          </button>
+          </FilterChip>
         </div>
       </div>
 
       {/* Asset type chips */}
       <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
           Type
         </p>
         <div className="flex flex-wrap gap-2">
           {/* "All" chip */}
-          <button
+          <FilterChip
+            active={activeFilters.asset_type === null}
             onClick={() => toggleAssetType(null)}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-              activeFilters.asset_type === null
-                ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
-                : "border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-            }`}
           >
             All
-          </button>
+          </FilterChip>
           {assetTypes.map((at) => (
-            <button
+            <FilterChip
               key={at.slug}
+              active={activeFilters.asset_type === at.slug}
               onClick={() => toggleAssetType(at.slug)}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                activeFilters.asset_type === at.slug
-                  ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
-                  : "border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-              }`}
             >
               <Package className="h-3 w-3" />
               {at.name}
               <span className="text-[10px] opacity-70">({at.count})</span>
-            </button>
+            </FilterChip>
           ))}
         </div>
       </div>
@@ -180,7 +157,7 @@ export function FilterSidebar({
       {/* Tag chips */}
       {tags.length > 0 && (
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Tags
           </p>
           <div className="flex flex-wrap gap-2">
@@ -193,14 +170,15 @@ export function FilterSidebar({
                   className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                     isActive
                       ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
-                      : "border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+                      : "border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
                   }`}
                   style={
                     isActive && tag.color
                       ? {
                           borderColor: tag.color,
-                          backgroundColor: `${tag.color}1a`,
                           color: tag.color,
+                          backgroundColor: "transparent",
+                          boxShadow: `inset 0 0 0 1px ${tag.color}33`,
                         }
                       : undefined
                   }
@@ -218,65 +196,81 @@ export function FilterSidebar({
         <div className="flex flex-wrap items-center gap-2 border-t border-[var(--border-subtle)] pt-3">
           <span className="text-xs text-[var(--text-muted)]">Active:</span>
           {activeFilters.featured && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--accent)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)]">
+            <ActiveFilterChip onRemove={toggleFeatured}>
               <Star className="h-3 w-3 fill-current" />
               Featured
-              <button
-                onClick={toggleFeatured}
-                className="ml-0.5 opacity-70 hover:opacity-100"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </span>
+            </ActiveFilterChip>
           )}
           {activeFilters.division && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--accent)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)]">
+            <ActiveFilterChip onRemove={() => toggleDivision(null)}>
               {divisionLabel(activeFilters.division)}
-              <button
-                onClick={() => toggleDivision(null)}
-                className="ml-0.5 opacity-70 hover:opacity-100"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </span>
+            </ActiveFilterChip>
           )}
           {activeFilters.asset_type && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--accent)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)]">
+            <ActiveFilterChip onRemove={() => toggleAssetType(null)}>
               {assetTypes.find((at) => at.slug === activeFilters.asset_type)?.name ??
                 activeFilters.asset_type}
-              <button
-                onClick={() => toggleAssetType(null)}
-                className="ml-0.5 opacity-70 hover:opacity-100"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </span>
+            </ActiveFilterChip>
           )}
           {activeFilters.tags.map((tagSlug) => {
             const tag = tags.find((t) => t.slug === tagSlug);
             return (
-              <span
-                key={tagSlug}
-                className="inline-flex items-center gap-1 rounded-full border border-[var(--accent)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)]"
-              >
+              <ActiveFilterChip key={tagSlug} onRemove={() => removeTag(tagSlug)}>
                 {tag?.name ?? tagSlug}
-                <button
-                  onClick={() => removeTag(tagSlug)}
-                  className="ml-0.5 opacity-70 hover:opacity-100"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
+              </ActiveFilterChip>
             );
           })}
           <button
             onClick={clearAll}
-            className="text-[10px] font-medium text-[var(--text-muted)] underline hover:text-[var(--text-secondary)]"
+            className="rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-secondary)]"
           >
             Clear all
           </button>
         </div>
       )}
     </div>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+        active
+          ? "border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)]"
+          : "border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ActiveFilterChip({
+  onRemove,
+  children,
+}: {
+  onRemove: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-[var(--accent)] bg-[var(--accent-muted)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)]">
+      {children}
+      <button
+        onClick={onRemove}
+        className="ml-0.5 opacity-70 hover:opacity-100"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </span>
   );
 }

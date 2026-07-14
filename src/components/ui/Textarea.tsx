@@ -32,7 +32,7 @@ export function Textarea({
   return (
     <div className={className}>
       {label && (
-        <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+        <label className="label mb-1.5 block">
           {label}
           {required && <span className="ml-1 text-[var(--accent)]">*</span>}
         </label>
@@ -42,7 +42,7 @@ export function Textarea({
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         rows={rows}
-        className={`block w-full rounded-md border bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-all duration-150 focus:outline-none focus:ring-1 resize-y ${
+        className={`block w-full rounded-lg border bg-[var(--bg-input)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-all duration-150 focus:outline-none focus:ring-1 resize-y ${
           monospace ? "font-mono text-xs" : ""
         } ${
           error

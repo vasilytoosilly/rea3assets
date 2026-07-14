@@ -5,7 +5,7 @@ import { PageHeader, Button, Card, CardHeader, CardBody, Input, EmptyState, Erro
 import { Tag as TagIcon } from "lucide-react";
 
 // ---------------------------------------------------------------------------
-// Tags management page — cyberpunk dark aesthetic
+// Tags management page — premium dark aesthetic
 // ---------------------------------------------------------------------------
 
 interface TagGroup { id: string; slug: string; name: string; sort_order: number; tags: Tag[]; }
@@ -27,8 +27,13 @@ export default function TagsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Tags" subtitle="Organize tags into groups (Genre, Art Style, Engine) for consistent asset classification."
-        action={<Button onClick={() => setShowCreateGroup(true)}>+ New Group</Button>} />
+      <PageHeader
+        title="Tags"
+        subtitle="Organize tags into groups (Genre, Art Style, Engine) for consistent asset classification."
+        eyebrow="Classification"
+        icon={<TagIcon size={20} />}
+        action={<Button onClick={() => setShowCreateGroup(true)}>+ New Group</Button>}
+      />
 
       {loading && (
         <div className="space-y-4">
@@ -74,17 +79,17 @@ function TagGroupCard({ group, onRefresh }: { group: TagGroup; onRefresh: () => 
   };
 
   return (
-    <Card className="border-[var(--border-default)] rounded-xl">
+    <Card className="rounded-xl border-[var(--border-default)]">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">{group.name}</h3>
+            <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">{group.name}</h3>
             <p className="text-xs text-[var(--text-muted)]">{group.slug} · {group.tags.length} tag{group.tags.length !== 1 ? "s" : ""}</p>
           </div>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="ghost" onClick={() => setShowAddTag(true)}>+ Tag</Button>
             {groupDeleteConfirm ? (
-              <div className="flex items-center gap-1"><span className="text-xs" style={{ color: "var(--accent)" }}>Delete?</span><Button size="sm" variant="danger" onClick={handleDeleteGroup}>Yes</Button><Button size="sm" variant="ghost" onClick={() => setGroupDeleteConfirm(false)}>No</Button></div>
+              <div className="flex items-center gap-1"><span className="text-xs text-[var(--accent)]">Delete?</span><Button size="sm" variant="danger" onClick={handleDeleteGroup}>Yes</Button><Button size="sm" variant="ghost" onClick={() => setGroupDeleteConfirm(false)}>No</Button></div>
             ) : (<Button size="sm" variant="danger" onClick={() => setGroupDeleteConfirm(true)}>Delete</Button>)}
           </div>
         </div>
@@ -124,13 +129,13 @@ function AddTagForm({ groupSlug, onDone, onCancel }: { groupSlug: string; onDone
     catch (err) { setError(String(err)); } finally { setSubmitting(false); }
   };
   return (
-    <div className="mt-4 rounded-xl border p-4" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-elevated)" }}>
+    <div className="mt-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] p-4">
       <h4 className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">New Tag</h4>
       {error && <div className="mb-2"><ErrorBanner message={error} onDismiss={() => setError(null)} /></div>}
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[140px]"><Input label="Name" placeholder="Fantasy" value={name} onChange={handleNameChange} /></div>
         <div className="flex-1 min-w-[100px]"><Input label="Slug" placeholder="fantasy" value={slug} onChange={setSlug} /></div>
-        <div><label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Color</label><input type="color" value={color || "#ffffff"} onChange={(e) => setColor(e.target.value)} className="h-9 w-16 rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] cursor-pointer" /></div>
+        <div><label className="label mb-1.5 block">Color</label><input type="color" value={color || "#ffffff"} onChange={(e) => setColor(e.target.value)} className="h-9 w-16 rounded-lg border border-[var(--border-default)] bg-[var(--bg-input)] cursor-pointer" /></div>
         <div className="flex gap-2 pb-0.5"><Button size="sm" variant="secondary" onClick={onCancel}>Cancel</Button><Button size="sm" disabled={!name.trim() || !slug.trim() || submitting} onClick={handleSubmit}>{submitting ? "..." : "Add"}</Button></div>
       </div>
     </div>

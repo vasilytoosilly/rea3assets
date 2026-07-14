@@ -59,12 +59,10 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Hero header */}
       <div
-        className={`relative overflow-hidden rounded-2xl border px-6 py-10 sm:px-8 transition-all duration-700 ${
+        className={`relative overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-6 py-10 sm:px-8 transition-all duration-700 ${
           mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
         }`}
         style={{
-          backgroundColor: "var(--bg-surface)",
-          borderColor: "var(--border-default)",
           boxShadow: "0 0 60px rgba(255,77,77,0.03), inset 0 1px 0 rgba(255,255,255,0.02)",
         }}
       >
@@ -74,11 +72,11 @@ export default function DashboardPage() {
           style={{ background: "radial-gradient(ellipse 40% 60% at 70% 20%, rgba(255,77,77,0.04) 0%, transparent 70%)" }}
         />
         <div className="relative">
-          <h1 className="text-2xl font-black uppercase tracking-wider sm:text-3xl"
-            style={{ color: "var(--text-primary)", textShadow: "0 0 40px rgba(255,77,77,0.08)" }}>
+          <p className="eyebrow mb-2 text-[var(--accent)]">Asset Manager</p>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
             Dashboard
           </h1>
-          <p className="mt-1.5 text-sm" style={{ color: "var(--text-muted)" }}>
+          <p className="mt-1.5 text-sm text-[var(--text-muted)]">
             Asset management overview for your studio.
           </p>
         </div>
@@ -111,9 +109,9 @@ export default function DashboardPage() {
 
       {/* Accent divider */}
       <div className="flex items-center gap-3">
-        <div className="h-px flex-1" style={{ background: "var(--border-subtle)" }} />
-        <div className="h-1 w-1 rounded-full" style={{ backgroundColor: "var(--accent)", opacity: 0.4 }} />
-        <div className="h-px flex-1" style={{ background: "var(--border-subtle)" }} />
+        <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+        <div className="h-1 w-1 rounded-full bg-[var(--accent)]/40" />
+        <div className="h-px flex-1 bg-[var(--border-subtle)]" />
       </div>
 
       {/* Quick action cards */}
@@ -127,21 +125,19 @@ export default function DashboardPage() {
       {/* Getting started guide */}
       {!loading && stats && stats.totalAssets === 0 && (
         <div
-          className="relative overflow-hidden rounded-xl border border-dashed px-8 py-14 text-center"
-          style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}
+          className="relative overflow-hidden rounded-xl border border-dashed border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-14 text-center"
         >
           <div className="pointer-events-none absolute inset-0"
             style={{ background: "radial-gradient(ellipse 40% 50% at 50% 50%, rgba(255,77,77,0.03) 0%, transparent 70%)" }} />
-          <div className="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border"
-            style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border-subtle)" }}>
+          <div className="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
             <Rocket className="h-7 w-7" style={{ color: "var(--accent)" }} />
           </div>
-          <p className="relative text-sm font-bold uppercase tracking-wider" style={{ color: "var(--text-primary)" }}>
+          <p className="relative text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">
             Get Started
           </p>
-          <p className="relative mt-1.5 text-sm" style={{ color: "var(--text-muted)" }}>
+          <p className="relative mt-1.5 text-sm text-[var(--text-muted)]">
             Start by creating an{" "}
-            <Link href="/asset-types" className="underline" style={{ color: "var(--accent)" }}>
+            <Link href="/asset-types" className="text-[var(--accent)] hover:text-[var(--accent-hover)] underline">
               Asset Type
             </Link>{" "}
             to define your first asset category, then add assets of that type.
@@ -156,12 +152,9 @@ function QuickAction({ href, icon, label, description }: { href: string; icon: R
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-xl border p-4 transition-all duration-200 hover:border-[var(--border-active)] hover:shadow-[0_0_20px_rgba(255,77,77,0.04)]"
-      style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-surface)" }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-elevated)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--bg-surface)"; }}
+      className="group flex items-center gap-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4 transition-all duration-200 hover:border-[var(--border-active)] hover:bg-[var(--bg-elevated)] hover:shadow-[0_0_24px_rgba(255,77,77,0.04)]"
     >
-      <span className="text-[var(--accent)] transition-transform duration-200 group-hover:scale-110" aria-hidden="true">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--accent)] transition-transform duration-200 group-hover:scale-110" aria-hidden="true">
         {icon}
       </span>
       <div className="min-w-0 flex-1">

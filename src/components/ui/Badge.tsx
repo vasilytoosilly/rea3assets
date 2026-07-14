@@ -10,16 +10,17 @@ interface BadgeProps {
   children: React.ReactNode;
   variant?: BadgeVariant;
   size?: "sm" | "md";
+  dot?: boolean;
 }
 
-export function Badge({ children, variant = "default", size = "sm" }: BadgeProps) {
+export function Badge({ children, variant = "default", size = "sm", dot }: BadgeProps) {
   const variants: Record<string, string> = {
-    default: "border-[var(--border-default)] text-[var(--text-secondary)]",
-    accent: "border-[var(--accent)] text-[var(--accent)] bg-[var(--accent-muted)]",
-    success: "border-[var(--status-approved)] text-[var(--status-approved)] bg-[rgba(34,197,94,0.15)]",
-    warning: "border-[var(--status-review)] text-[var(--status-review)] bg-[rgba(245,158,11,0.15)]",
-    error: "border-[var(--status-deprecated)] text-[var(--status-deprecated)] bg-[rgba(239,68,68,0.15)]",
-    muted: "border-[var(--border-subtle)] text-[var(--text-muted)]",
+    default: "border-[var(--border-default)] text-[var(--text-secondary)] bg-transparent",
+    accent: "border-[var(--accent-border)] text-[var(--accent)] bg-[var(--accent-muted)]",
+    success: "border-[var(--status-approved)]/30 text-[var(--status-approved)] bg-[var(--status-approved)]/10",
+    warning: "border-[var(--status-review)]/30 text-[var(--status-review)] bg-[var(--status-review)]/10",
+    error: "border-[var(--status-deprecated)]/30 text-[var(--status-deprecated)] bg-[var(--status-deprecated)]/10",
+    muted: "border-[var(--border-subtle)] text-[var(--text-muted)] bg-transparent",
   };
 
   const sizes: Record<string, string> = {
@@ -29,8 +30,23 @@ export function Badge({ children, variant = "default", size = "sm" }: BadgeProps
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border font-medium uppercase tracking-wider ${variants[variant]} ${sizes[size]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border font-semibold uppercase tracking-wider ${variants[variant]} ${sizes[size]}`}
     >
+      {dot && (
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{
+            backgroundColor:
+              variant === "success"
+                ? "var(--status-approved)"
+                : variant === "warning"
+                ? "var(--status-review)"
+                : variant === "error"
+                ? "var(--status-deprecated)"
+                : "var(--accent)",
+          }}
+        />
+      )}
       {children}
     </span>
   );

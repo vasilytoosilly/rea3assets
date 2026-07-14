@@ -58,7 +58,7 @@ export default function ErpSettingsPage() {
 
       <Card className="border-[var(--border-default)]">
         <CardHeader>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
             Connection
           </h3>
         </CardHeader>
@@ -73,7 +73,7 @@ export default function ErpSettingsPage() {
             {testStatus === "error" && <Badge variant="error">Failed</Badge>}
           </div>
           {testMessage && (
-            <p className="text-xs" style={{ color: testStatus === "success" ? "#22c55e" : "var(--status-deprecated)" }}>
+            <p className={`text-xs ${testStatus === "success" ? "text-green-500" : "text-red-500"}`}>
               {testMessage}
             </p>
           )}
@@ -82,7 +82,7 @@ export default function ErpSettingsPage() {
 
       <Card className="border-[var(--border-default)]">
         <CardHeader>
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-primary)]">
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
             Integration Contract
           </h3>
         </CardHeader>
@@ -101,7 +101,7 @@ export default function ErpSettingsPage() {
           <p>
             Configure the ERP connection using environment variables:
           </p>
-          <pre className="rounded-md bg-[var(--bg-elevated)] p-3 text-xs text-[var(--text-muted)]">
+          <pre className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-base)] p-3 font-mono text-[11px] leading-relaxed text-[var(--text-muted)]">
 {`ERP_INTERNAL_URL=http://localhost:3000
 ERP_INTERNAL_API_KEY=your-api-key-here`}
           </pre>
@@ -113,7 +113,7 @@ ERP_INTERNAL_API_KEY=your-api-key-here`}
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3 last:border-0 last:pb-0">
+    <div className="flex items-center justify-between border-b border-[var(--border-subtle)] py-3 first:pt-0 last:border-0 last:pb-0">
       <span className="text-sm font-medium text-[var(--text-secondary)]">{label}</span>
       <span className="text-sm text-[var(--text-primary)]">{value}</span>
     </div>

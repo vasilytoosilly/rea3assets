@@ -28,7 +28,7 @@ export function Toggle({ checked, onChange, label, description }: ToggleProps) {
             onChange(!checked);
           }
         }}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--bg-surface)] ${
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-surface)] ${
           checked ? "bg-[var(--accent)]" : "bg-[var(--bg-hover)]"
         }`}
         role="switch"
