@@ -22,10 +22,6 @@ export async function POST() {
 
     const res = await fetch(`${erpUrl}/health`, {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
       signal: controller.signal,
     });
 

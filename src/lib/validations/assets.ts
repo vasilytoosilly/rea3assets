@@ -18,4 +18,5 @@ export const updateAssetSchema = z.object({
   status: z
     .enum(["draft", "in_review", "approved", "published", "deprecated", "archived"])
     .optional(),
+  sku: z.string().trim().min(1).max(100).nullable().optional(),
 });

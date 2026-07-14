@@ -72,6 +72,15 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: "Version not found" }, { status: 404 });
     }
 
+    // Guard: prevent deleting the last remaining version
+    const versionCount = await prisma.assetVersion.count({ where: { asset_id: id } });
+    if (versionCount <= 1) {
+      return NextResponse.json(
+        { error: "Cannot delete the last remaining version of an asset. Add a new version first or delete the asset entirely." },
+        { status: 409 },
+      );
+    }
+
     // Clean up stored file if present (best-effort)
     deleteFileByUrl(version.file_path);
 

@@ -132,6 +132,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
           ...(parsed.data.name !== undefined && { name: parsed.data.name }),
           ...(parsed.data.description !== undefined && { description: parsed.data.description }),
           ...(validatedMetadata !== undefined && { metadata: validatedMetadata as Prisma.InputJsonValue }),
+          ...(parsed.data.sku !== undefined && { sku: parsed.data.sku }),
           ...(parsed.data.status !== undefined && {
             status: parsed.data.status,
             ...(parsed.data.status === "published" && !existing.published_at

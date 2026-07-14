@@ -16,7 +16,7 @@ interface RouteContext {
 // TODO: Replace HTTP self-call with direct function import from the marketplace
 // route handler for better efficiency (avoid intra-process round-trip).
 function getBaseUrl(): string {
-  return process.env.SITE_URL ?? "http://localhost:3003";
+  return process.env.SITE_URL ?? (process.env.NODE_ENV === "production" ? "http://localhost:3003" : "http://localhost:3000");
 }
 
 export async function GET(_request: NextRequest, { params }: RouteContext) {

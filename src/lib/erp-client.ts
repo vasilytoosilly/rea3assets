@@ -256,7 +256,7 @@ export async function syncAssets(
  */
 export async function getErpAssets(sku: string): Promise<ErpResponse<{
   data: Array<{ id: string; sku: string; file_path: string; version: string; format: string; checksum?: string | null }>;
-  pagination: { page: number; limit: number; total: number; pages: number };
+  meta: { page: number; limit: number; total: number };
 }>> {
   return erpFetch(`/api/internal/assets?sku=${encodeURIComponent(sku)}`);
 }

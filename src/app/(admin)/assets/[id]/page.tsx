@@ -20,7 +20,7 @@ import {
 import type { FieldConfig } from "@/lib/validations/fields";
 import { formatBytes } from "@/lib/formatters";
 import {
-  Check, X as XIcon, Star, Paperclip, Cog,
+  Check, X as XIcon, Star, Paperclip, Cog, Trash2,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -77,6 +77,7 @@ interface FieldValue {
 interface AssetDetail {
   id: string;
   asset_type_id: string;
+  sku: string | null;
   slug: string;
   name: string;
   description: string | null;
@@ -658,9 +659,28 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
                         }><span className="inline-flex items-center gap-1"><Cog size={10} /> {run.status}</span></Badge>
                       ))}
                     </div>
-                    <span className="text-xs text-[var(--text-muted)]">
-                      {new Date(v.created_at).toLocaleDateString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-[var(--text-muted)]">
+                        {new Date(v.created_at).toLocaleDateString()}
+                      </span>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm("Delete version " + v.version + "? This cannot be undone.")) return;
+                          try {
+                            const res = await fetch("/api/assets/" + assetId + "/versions/" + v.id, { method: "DELETE" });
+                            if (!res.ok) { const errData = await res.json().catch(() => ({})); throw new Error(errData.error || "HTTP " + res.status); }
+                            onRefresh();
+                          } catch (err) {
+                            showToast("error", "Delete failed: " + String(err));
+                          }
+                        }}
+                        className="text-[var(--text-muted)] hover:text-[var(--status-deprecated)] transition-colors"
+                        title="Delete version"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                   {v.changelog && (
                     <p className="mt-2 text-sm text-[var(--text-secondary)]">{v.changelog}</p>
@@ -687,11 +707,16 @@ function VersionsTab({ assetId, versions, onRefresh }: { assetId: string; versio
 // ---------------------------------------------------------------------------
 
 function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => void }) {
+  const router = useRouter();
   const [name, setName] = useState(asset.name);
   const [description, setDescription] = useState(asset.description ?? "");
+  const [sku, setSku] = useState(asset.sku ?? "");
   const [featured, setFeatured] = useState(asset.metadata?.featured === true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleSave = async () => {
     setSaving(true);
@@ -708,6 +733,7 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
           name: name.trim(),
           description: description.trim() || null,
           metadata: newMetadata,
+          sku: sku.trim() || null,
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -731,6 +757,13 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
         <CardBody className="space-y-4">
           <Input label="Name" value={name} onChange={setName} />
           <Input label="Description" value={description} onChange={setDescription} />
+          <Input
+            label="SKU"
+            placeholder="e.g. VP-CHAR-001 (matches ERP ProductSKU)"
+            value={sku}
+            onChange={setSku}
+            helpText="The ERP product code. Required to publish and sync to the ERP."
+          />
           <div>
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
               Slug
@@ -777,6 +810,61 @@ function SettingsTab({ asset, onSaved }: { asset: AssetDetail; onSaved: () => vo
           {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
+
+      <Card className="border-[var(--status-deprecated)]">
+        <CardHeader>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--status-deprecated)]">
+            Danger Zone
+          </h3>
+        </CardHeader>
+        <CardBody className="space-y-4">
+          {deleteError && (
+            <ErrorBanner message={deleteError} onDismiss={() => setDeleteError(null)} />
+          )}
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            Deleting an asset permanently removes it, all its versions, thumbnails, tags, and
+            dependencies. This action cannot be undone. If the asset was published, the ERP
+            asset records will also be cleaned up.
+          </p>
+          {confirmDelete ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm" style={{ color: "var(--status-deprecated)" }}>
+                Are you sure? This is irreversible.
+              </span>
+              <Button
+                variant="danger"
+                size="sm"
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true);
+                  setDeleteError(null);
+                  try {
+                    const res = await fetch("/api/assets/" + asset.id, { method: "DELETE" });
+                    if (!res.ok) {
+                      const data = await res.json().catch(() => null);
+                      throw new Error(data?.error ?? "HTTP " + res.status);
+                    }
+                    router.push("/assets");
+                  } catch (err) {
+                    setDeleteError(String(err));
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+              >
+                {deleting ? "Deleting..." : "Yes, Delete Permanently"}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => setConfirmDelete(false)}>
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button variant="danger" size="sm" onClick={() => setConfirmDelete(true)}>
+              Delete Asset
+            </Button>
+          )}
+        </CardBody>
+      </Card>
     </div>
   );
 }

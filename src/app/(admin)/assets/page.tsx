@@ -65,9 +65,18 @@ export default function AssetsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [assetTypes, setAssetTypes] = useState<Array<{ slug: string; name: string }>>([]);
+
+  useEffect(() => {
+    fetch("/api/asset-types")
+      .then((r) => r.json())
+      .then((data) => setAssetTypes(data.map((t: { slug: string; name: string }) => ({ slug: t.slug, name: t.name }))))
+      .catch(() => {});
+  }, []);
 
   const fetchAssets = useCallback(async () => {
     try {
@@ -75,6 +84,7 @@ export default function AssetsPage() {
       setError(null);
       const params = new URLSearchParams();
       if (statusFilter) params.set("status", statusFilter);
+      if (typeFilter) params.set("type", typeFilter);
       if (search) params.set("search", search);
       params.set("page", String(page));
       params.set("limit", "25");
@@ -90,7 +100,7 @@ export default function AssetsPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, search, page]);
+  }, [statusFilter, typeFilter, search, page]);
 
   useEffect(() => {
     fetchAssets();
@@ -121,6 +131,12 @@ export default function AssetsPage() {
           onChange={(e) => { setStatusFilter(e); setPage(1); }}
           options={STATUS_OPTIONS}
           placeholder="All statuses"
+        />
+        <Select
+          value={typeFilter}
+          onChange={(e) => { setTypeFilter(e); setPage(1); }}
+          options={assetTypes.map((t) => ({ value: t.slug, label: t.name }))}
+          placeholder="All types"
         />
         <Badge variant="muted">{total} assets</Badge>
       </div>
