@@ -5,9 +5,14 @@
 // - Protects /api/ routes → returns 401 if not authenticated
 // - Skips /api/auth/* and /api/internal/* (these use other auth mechanisms)
 // - If ADMIN_PASSWORD is not set, auth is disabled (dev mode)
+//
+// Exported as `proxy` AND `middleware` — Next.js App Router detects the
+// `middleware` named export. The `proxy` alias is kept for backward compat
+// with any internal imports.
+// ---------------------------------------------------------------------------
 
 import { NextResponse, NextRequest } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { verifyToken } from "@/lib/auth-edge";
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -66,6 +71,9 @@ export async function proxy(request: NextRequest) {
 
   return NextResponse.next();
 }
+
+// Next.js App Router middleware — must be a named export called `middleware`
+export { proxy as middleware };
 
 export const config = {
   matcher: [
