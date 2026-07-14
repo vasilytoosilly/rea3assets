@@ -47,3 +47,6 @@ prisma/migrations/
 *.tar.gz
 *.zip
 dashboard-*.png
+
+# pm2 logs
+/logs/
